@@ -85,15 +85,18 @@ export const SettingsPage = () => {
     void fetchSettings();
   }, [i18n]);
 
-  const handleChange = (key: keyof SettingsPayload) => (event: any) => {
-    const value = event?.target?.type === 'checkbox' ? event.target.checked : event.target.value;
+  const handleChange = (key: keyof SettingsPayload) => (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | SelectChangeEvent<string>
+  ) => {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
     setSettings((prev) => ({ ...prev, [key]: value }));
     if (key === 'language') {
       void i18n.changeLanguage(String(value));
     }
   };
 
-  const handleNumberChange = (key: keyof SettingsPayload) => (event: any) => {
+  const handleNumberChange = (key: keyof SettingsPayload) => (event: ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value);
     setSettings((prev) => ({ ...prev, [key]: Number.isNaN(value) ? prev[key] : value }));
   };

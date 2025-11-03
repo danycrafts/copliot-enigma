@@ -16,6 +16,7 @@ import {
   Menu,
   MenuItem,
   Select,
+  SelectChangeEvent,
   Stack,
   Toolbar,
   Tooltip,
@@ -85,7 +86,7 @@ const NavigationBar = () => {
             <Select
               size="small"
               value={i18n.language}
-              onChange={(event) => void i18n.changeLanguage(String(event.target.value))}
+              onChange={(event: SelectChangeEvent<string>) => void i18n.changeLanguage(event.target.value)}
               sx={{ color: 'inherit', minWidth: 120 }}
             >
               {languageOptions.map((code) => (
