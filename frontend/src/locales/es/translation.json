@@ -1,0 +1,82 @@
+{
+  "app": {
+    "title": "Enigma Copiloto de Escritorio",
+    "tagline": "Copiloto personal para tus tareas diarias",
+    "language": "Idioma",
+    "actions": {
+      "refresh": "Actualizar",
+      "save": "Guardar ajustes",
+      "testConnection": "Probar conexión",
+      "viewAll": "Ver todo"
+    },
+    "notifications": {
+      "settingsSaved": "Ajustes guardados correctamente",
+      "connectionSuccess": "Conexión verificada",
+      "connectionFailed": "Fallo en la conexión"
+    }
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "activity": "Actividad",
+    "settings": "Configuración"
+  },
+  "dashboard": {
+    "title": "Resumen de operaciones",
+    "status": {
+      "label": "Conexión LLM",
+      "healthy": "Operativo",
+      "unhealthy": "Requiere atención"
+    },
+    "settingsPath": "Ajustes guardados en {{path}}",
+    "telemetry": {
+      "desktop": "Captura de escritorio",
+      "activity": "Registro de actividad",
+      "enabled": "Activado",
+      "disabled": "Desactivado"
+    },
+    "activity": {
+      "title": "Actividad reciente",
+      "empty": "Aún no hay observaciones disponibles",
+      "confidence": "Confianza"
+    }
+  },
+  "activity": {
+    "title": "Cronología de actividad",
+    "description": "Consulta las observaciones generadas por Enigma para entender tus patrones de trabajo.",
+    "table": {
+      "category": "Categoría",
+      "description": "Descripción",
+      "timestamp": "Marca de tiempo",
+      "confidence": "Confianza"
+    }
+  },
+  "settings": {
+    "title": "Configuración del LLM y experiencia",
+    "description": "Define el endpoint compatible con OpenAI y ajusta Enigma a tus preferencias.",
+    "fields": {
+      "apiBaseUrl": "URL base de la API",
+      "apiKey": "Clave API",
+      "model": "Modelo",
+      "organization": "Organización",
+      "language": "Idioma preferido",
+      "desktopCaptureEnabled": "Captura de escritorio",
+      "activityLogging": "Registro de actividad"
+    },
+    "hints": {
+      "apiBaseUrl": "Ejemplo: https://api.openai.com/v1",
+      "apiKey": "Se almacena de forma segura en este equipo",
+      "model": "Identificador del modelo soportado",
+      "organization": "Cabecera opcional de organización",
+      "language": "Selecciona el idioma de la interfaz",
+      "desktopCaptureEnabled": "Permite que Enigma resuma lo que ocurre en pantalla",
+      "activityLogging": "Mantén una cronología local de las ideas de Enigma"
+    },
+    "toggles": {
+      "enabled": "Activado",
+      "disabled": "Desactivado"
+    },
+    "prompts": {
+      "missingBaseUrl": "Introduce una URL base antes de probar la conexión"
+    }
+  }
+}

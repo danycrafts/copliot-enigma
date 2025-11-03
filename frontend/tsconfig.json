@@ -18,9 +18,22 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment"
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "types": [
+      "vite/client"
+    ],
+    "paths": {
+      "react": [
+        "./src/preact.d.ts"
+      ],
+      "react-dom": [
+        "./src/preact.d.ts"
+      ],
+      "react/jsx-runtime": [
+        "./src/preact.d.ts"
+      ]
+    }
   },
   "include": [
     "src"

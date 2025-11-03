@@ -5,3 +5,23 @@
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
+
+export function GetOverview() {
+  return window['go']['main']['App']['GetOverview']();
+}
+
+export function GetRecentActivity() {
+  return window['go']['main']['App']['GetRecentActivity']();
+}
+
+export function GetSettings() {
+  return window['go']['main']['App']['GetSettings']();
+}
+
+export function SaveSettings(arg1) {
+  return window['go']['main']['App']['SaveSettings'](arg1);
+}
+
+export function TestLLMConnection(arg1) {
+  return window['go']['main']['App']['TestLLMConnection'](arg1);
+}
