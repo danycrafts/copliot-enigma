@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LanguageIcon from '@mui/icons-material/Language';
 import SaveIcon from '@mui/icons-material/Save';
 import {
+  Avatar,
   Alert,
   Box,
   Button,
   Card,
   CardContent,
+  Divider,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -28,10 +31,9 @@ import {
 } from '../../wailsjs/go/main/App';
 import type { ConnectionStatus, SettingsPayload } from '../types';
 
-const languageOptions = [
-  { code: 'en', label: 'English' },
-  { code: 'es', label: 'Español' }
-];
+const languageOptions = ['en', 'es', 'de'] as const;
+const llmVendors = ['openai', 'azure', 'local'] as const;
+const browserOptions = ['chromium', 'chrome', 'edge', 'firefox'] as const;
 
 const defaultSettings: SettingsPayload = {
   apiBaseUrl: '',
@@ -40,7 +42,17 @@ const defaultSettings: SettingsPayload = {
   organization: '',
   language: 'en',
   desktopCaptureEnabled: false,
-  activityLogging: true
+  activityLogging: true,
+  displayName: '',
+  avatarUrl: '',
+  preferredLLMVendor: 'openai',
+  requestTimeoutSeconds: 15,
+  maxRetries: 2,
+  networkProxy: '',
+  allowUntrustedCertificates: false,
+  automationBrowser: 'chromium',
+  browserProfilePath: '',
+  backgroundAutomation: false
 };
 
 export const SettingsPage = () => {
@@ -54,7 +66,7 @@ export const SettingsPage = () => {
     const fetchSettings = async () => {
       try {
         const response = await GetSettings();
-        setSettings(response);
+        setSettings({ ...defaultSettings, ...response });
         if (response.language) {
           void i18n.changeLanguage(response.language);
         }
@@ -74,6 +86,11 @@ export const SettingsPage = () => {
     if (key === 'language') {
       void i18n.changeLanguage(String(value));
     }
+  };
+
+  const handleNumberChange = (key: keyof SettingsPayload) => (event: any) => {
+    const value = Number(event.target.value);
+    setSettings((prev) => ({ ...prev, [key]: Number.isNaN(value) ? prev[key] : value }));
   };
 
   const handleSave = async () => {
@@ -132,6 +149,36 @@ export const SettingsPage = () => {
           </Box>
 
           <Stack spacing={2}>
+            <Typography variant="h6">{t('settings.sections.account.title')}</Typography>
+            <Typography variant="body2" color="text.secondary">{t('settings.sections.account.description')}</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+              <Avatar src={settings.avatarUrl} alt={settings.displayName ?? ''} sx={{ width: 72, height: 72 }}>
+                <LanguageIcon />
+              </Avatar>
+              <Stack spacing={2} flex={1} width="100%">
+                <TextField
+                  label={t('settings.fields.displayName')}
+                  value={settings.displayName ?? ''}
+                  onChange={handleChange('displayName')}
+                  helperText={t('settings.hints.displayName')}
+                  disabled={loading}
+                  fullWidth
+                />
+                <TextField
+                  label={t('settings.fields.avatarUrl')}
+                  value={settings.avatarUrl ?? ''}
+                  onChange={handleChange('avatarUrl')}
+                  helperText={t('settings.hints.avatarUrl')}
+                  disabled={loading}
+                  fullWidth
+                />
+              </Stack>
+            </Stack>
+
+            <Divider flexItem />
+
+            <Typography variant="h6">{t('settings.sections.llm.title')}</Typography>
+            <Typography variant="body2" color="text.secondary">{t('settings.sections.llm.description')}</Typography>
             <TextField
               label={t('settings.fields.apiBaseUrl')}
               value={settings.apiBaseUrl}
@@ -157,6 +204,21 @@ export const SettingsPage = () => {
               disabled={loading}
               fullWidth
             />
+            <FormControl fullWidth>
+              <InputLabel id="preferred-llm-label">{t('settings.fields.preferredLLMVendor')}</InputLabel>
+              <Select
+                labelId="preferred-llm-label"
+                label={t('settings.fields.preferredLLMVendor')}
+                value={settings.preferredLLMVendor ?? 'openai'}
+                onChange={handleChange('preferredLLMVendor')}
+                disabled={loading}
+              >
+                {llmVendors.map((vendor) => (
+                  <MenuItem key={vendor} value={vendor}>{t(`settings.options.llmVendor.${vendor}`)}</MenuItem>
+                ))}
+              </Select>
+              <Typography variant="caption" color="text.secondary">{t('settings.hints.preferredLLMVendor')}</Typography>
+            </FormControl>
             <TextField
               label={t('settings.fields.organization')}
               value={settings.organization ?? ''}
@@ -164,6 +226,26 @@ export const SettingsPage = () => {
               helperText={t('settings.hints.organization')}
               disabled={loading}
               fullWidth
+            />
+            <TextField
+              label={t('settings.fields.requestTimeoutSeconds')}
+              type="number"
+              value={settings.requestTimeoutSeconds ?? 15}
+              onChange={handleNumberChange('requestTimeoutSeconds')}
+              helperText={t('settings.hints.requestTimeoutSeconds')}
+              disabled={loading}
+              fullWidth
+              inputProps={{ min: 5 }}
+            />
+            <TextField
+              label={t('settings.fields.maxRetries')}
+              type="number"
+              value={settings.maxRetries ?? 1}
+              onChange={handleNumberChange('maxRetries')}
+              helperText={t('settings.hints.maxRetries')}
+              disabled={loading}
+              fullWidth
+              inputProps={{ min: 0, max: 5 }}
             />
 
             <FormControl fullWidth>
@@ -175,13 +257,41 @@ export const SettingsPage = () => {
                 onChange={handleLanguageChange}
                 disabled={loading}
               >
-                {languageOptions.map((option) => (
-                  <MenuItem key={option.code} value={option.code}>{option.label}</MenuItem>
+                {languageOptions.map((code) => (
+                  <MenuItem key={code} value={code}>{t(`languages.${code}`)}</MenuItem>
                 ))}
               </Select>
               <Typography variant="caption" color="text.secondary">{t('settings.hints.language')}</Typography>
             </FormControl>
 
+            <Divider flexItem />
+
+            <Typography variant="h6">{t('settings.sections.network.title')}</Typography>
+            <Typography variant="body2" color="text.secondary">{t('settings.sections.network.description')}</Typography>
+            <TextField
+              label={t('settings.fields.networkProxy')}
+              value={settings.networkProxy ?? ''}
+              onChange={handleChange('networkProxy')}
+              helperText={t('settings.hints.networkProxy')}
+              disabled={loading}
+              fullWidth
+            />
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={settings.allowUntrustedCertificates ?? false}
+                  onChange={handleChange('allowUntrustedCertificates')}
+                  color="primary"
+                />
+              )}
+              label={settings.allowUntrustedCertificates ? t('settings.toggles.enabled') : t('settings.toggles.disabled')}
+            />
+            <Typography variant="caption" color="text.secondary">{t('settings.hints.allowUntrustedCertificates')}</Typography>
+
+            <Divider flexItem />
+
+            <Typography variant="h6">{t('settings.sections.automation.title')}</Typography>
+            <Typography variant="body2" color="text.secondary">{t('settings.sections.automation.description')}</Typography>
             <FormControlLabel
               control={
                 <Switch
@@ -205,6 +315,42 @@ export const SettingsPage = () => {
               label={settings.activityLogging ? t('settings.toggles.enabled') : t('settings.toggles.disabled')}
             />
             <Typography variant="caption" color="text.secondary">{t('settings.hints.activityLogging')}</Typography>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={settings.backgroundAutomation}
+                  onChange={handleChange('backgroundAutomation')}
+                  color="primary"
+                />
+              }
+              label={settings.backgroundAutomation ? t('settings.toggles.enabled') : t('settings.toggles.disabled')}
+            />
+            <Typography variant="caption" color="text.secondary">{t('settings.hints.backgroundAutomation')}</Typography>
+
+            <FormControl fullWidth>
+              <InputLabel id="automation-browser-label">{t('settings.fields.automationBrowser')}</InputLabel>
+              <Select
+                labelId="automation-browser-label"
+                label={t('settings.fields.automationBrowser')}
+                value={settings.automationBrowser}
+                onChange={handleChange('automationBrowser')}
+                disabled={loading}
+              >
+                {browserOptions.map((option) => (
+                  <MenuItem key={option} value={option}>{t(`settings.options.browser.${option}`)}</MenuItem>
+                ))}
+              </Select>
+              <Typography variant="caption" color="text.secondary">{t('settings.hints.automationBrowser')}</Typography>
+            </FormControl>
+            <TextField
+              label={t('settings.fields.browserProfilePath')}
+              value={settings.browserProfilePath ?? ''}
+              onChange={handleChange('browserProfilePath')}
+              helperText={t('settings.hints.browserProfilePath')}
+              disabled={loading}
+              fullWidth
+            />
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="flex-end">

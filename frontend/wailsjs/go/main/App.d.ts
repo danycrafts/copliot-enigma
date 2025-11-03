@@ -35,7 +35,17 @@ export function GetSettings():Promise<{
     language: string;
     desktopCaptureEnabled: boolean;
     activityLogging: boolean;
-}>;
+    displayName?: string;
+    avatarUrl?: string;
+    preferredLLMVendor?: string;
+    requestTimeoutSeconds?: number;
+    maxRetries?: number;
+    networkProxy?: string;
+    allowUntrustedCertificates?: boolean;
+    automationBrowser: string;
+    browserProfilePath?: string;
+    backgroundAutomation: boolean;
+}>; 
 export function SaveSettings(arg1:{
     apiBaseUrl: string;
     apiKey: string;
@@ -44,6 +54,16 @@ export function SaveSettings(arg1:{
     language: string;
     desktopCaptureEnabled: boolean;
     activityLogging: boolean;
+    displayName?: string;
+    avatarUrl?: string;
+    preferredLLMVendor?: string;
+    requestTimeoutSeconds?: number;
+    maxRetries?: number;
+    networkProxy?: string;
+    allowUntrustedCertificates?: boolean;
+    automationBrowser: string;
+    browserProfilePath?: string;
+    backgroundAutomation: boolean;
 }):Promise<{
     apiBaseUrl: string;
     apiKey: string;
@@ -52,7 +72,17 @@ export function SaveSettings(arg1:{
     language: string;
     desktopCaptureEnabled: boolean;
     activityLogging: boolean;
-}>;
+    displayName?: string;
+    avatarUrl?: string;
+    preferredLLMVendor?: string;
+    requestTimeoutSeconds?: number;
+    maxRetries?: number;
+    networkProxy?: string;
+    allowUntrustedCertificates?: boolean;
+    automationBrowser: string;
+    browserProfilePath?: string;
+    backgroundAutomation: boolean;
+}>; 
 export function TestLLMConnection(arg1:{
     apiBaseUrl: string;
     apiKey: string;
@@ -61,7 +91,17 @@ export function TestLLMConnection(arg1:{
     language: string;
     desktopCaptureEnabled: boolean;
     activityLogging: boolean;
+    displayName?: string;
+    avatarUrl?: string;
+    preferredLLMVendor?: string;
+    requestTimeoutSeconds?: number;
+    maxRetries?: number;
+    networkProxy?: string;
+    allowUntrustedCertificates?: boolean;
+    automationBrowser: string;
+    browserProfilePath?: string;
+    backgroundAutomation: boolean;
 }):Promise<{
     healthy: boolean;
     message: string;
-}>;
+}>; 

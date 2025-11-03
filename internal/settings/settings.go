@@ -18,6 +18,16 @@ type Settings struct {
 	Language              string `json:"language"`
 	DesktopCaptureEnabled bool   `json:"desktopCaptureEnabled"`
 	ActivityLogging       bool   `json:"activityLogging"`
+	DisplayName           string `json:"displayName,omitempty"`
+	AvatarURL             string `json:"avatarUrl,omitempty"`
+	PreferredLLMVendor    string `json:"preferredLLMVendor,omitempty"`
+	RequestTimeoutSeconds int    `json:"requestTimeoutSeconds,omitempty"`
+	MaxRetries            int    `json:"maxRetries,omitempty"`
+	NetworkProxy          string `json:"networkProxy,omitempty"`
+	AllowUntrustedCerts   bool   `json:"allowUntrustedCertificates,omitempty"`
+	AutomationBrowser     string `json:"automationBrowser"`
+	BrowserProfilePath    string `json:"browserProfilePath,omitempty"`
+	BackgroundAutomation  bool   `json:"backgroundAutomation"`
 }
 
 // DefaultSettings returns a Settings instance populated with secure defaults.
@@ -30,6 +40,11 @@ func DefaultSettings() Settings {
 		Language:              "en",
 		DesktopCaptureEnabled: false,
 		ActivityLogging:       true,
+		PreferredLLMVendor:    "openai",
+		RequestTimeoutSeconds: 15,
+		MaxRetries:            2,
+		AutomationBrowser:     "chromium",
+		BackgroundAutomation:  false,
 	}
 }
 

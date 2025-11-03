@@ -6,6 +6,16 @@ export interface SettingsPayload {
   language: string;
   desktopCaptureEnabled: boolean;
   activityLogging: boolean;
+  displayName?: string;
+  avatarUrl?: string;
+  preferredLLMVendor?: string;
+  requestTimeoutSeconds?: number;
+  maxRetries?: number;
+  networkProxy?: string;
+  allowUntrustedCertificates?: boolean;
+  automationBrowser: string;
+  browserProfilePath?: string;
+  backgroundAutomation: boolean;
 }
 
 export interface ConnectionStatus {

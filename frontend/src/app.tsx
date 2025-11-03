@@ -1,4 +1,5 @@
 import { useMemo } from 'preact/hooks';
+import BoltIcon from '@mui/icons-material/Bolt';
 import LanguageIcon from '@mui/icons-material/Language';
 import SettingsIcon from '@mui/icons-material/Settings';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -19,12 +20,14 @@ import { useTranslation } from 'react-i18next';
 import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { ActivityPage } from './pages/ActivityPage';
+import { ActionsPage } from './pages/ActionsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 const navItems = [
   { path: '/', icon: <ViewQuiltIcon />, labelKey: 'navigation.dashboard' },
   { path: '/activity', icon: <TimelineIcon />, labelKey: 'navigation.activity' },
+  { path: '/actions', icon: <BoltIcon />, labelKey: 'navigation.actions' },
   { path: '/settings', icon: <SettingsIcon />, labelKey: 'navigation.settings' }
 ];
 
@@ -32,6 +35,7 @@ const NavigationBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const languageOptions = ['en', 'es', 'de'] as const;
 
   const activePath = useMemo(() => {
     const found = navItems.find((item) => location.pathname === item.path);
@@ -67,8 +71,9 @@ const NavigationBar = () => {
               onChange={(event) => void i18n.changeLanguage(String(event.target.value))}
               sx={{ color: 'inherit', minWidth: 120 }}
             >
-              <MenuItem value="en">English</MenuItem>
-              <MenuItem value="es">Español</MenuItem>
+              {languageOptions.map((code) => (
+                <MenuItem key={code} value={code}>{t(`languages.${code}`)}</MenuItem>
+              ))}
             </Select>
           </Stack>
         </Stack>
@@ -82,6 +87,7 @@ const AppContent = () => (
     <Routes>
       <Route path="/" element={<DashboardPage />} />
       <Route path="/activity" element={<ActivityPage />} />
+      <Route path="/actions" element={<ActionsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
