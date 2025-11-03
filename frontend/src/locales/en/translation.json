@@ -7,7 +7,8 @@
       "refresh": "Refresh",
       "save": "Save settings",
       "testConnection": "Test connection",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "close": "Close"
     },
     "notifications": {
       "settingsSaved": "Settings saved successfully",
@@ -25,6 +26,25 @@
     "activity": "Activity",
     "actions": "Actions",
     "settings": "Settings"
+  },
+  "auth": {
+    "loginTitle": "Sign in to Enigma",
+    "guest": "Guest",
+    "menuTitle": "Signed in as {{name}}",
+    "menu": {
+      "settings": "Account settings"
+    },
+    "fields": {
+      "username": "Username",
+      "email": "Email address",
+      "password": "Password"
+    },
+    "actions": {
+      "openLogin": "Sign in",
+      "login": "Sign in",
+      "cancel": "Cancel",
+      "logout": "Sign out"
+    }
   },
   "dashboard": {
     "title": "Operations overview",
@@ -62,6 +82,20 @@
       "categoryDescription": "Where Enigma spends the most attention during your sessions.",
       "eventsLabel": "Events",
       "confidenceLabel": "Confidence"
+    },
+    "details": {
+      "statusTitle": "Connection details",
+      "statusDescription": "Review the latest health check and where settings are stored.",
+      "lastRefresh": "Last checked {{timestamp}}",
+      "healthTitle": "Health breakdown",
+      "healthDescription": "Understand the signals contributing to the overall health score.",
+      "activityTitle": "Recent observations",
+      "activityDescription": "Expanded view of the latest events captured by Enigma.",
+      "timelineDescription": "Daily cadence of observations for the current sample window.",
+      "confidenceDescription": "Confidence trend with contextual time stamps.",
+      "categoryDescription": "How activity is distributed between focus categories.",
+      "telemetryTitle": "Telemetry configuration",
+      "telemetryDescription": "Quick glance at the capture preferences currently enabled."
     }
   },
   "activity": {
@@ -189,10 +223,18 @@
   "settings": {
     "title": "LLM & experience settings",
     "description": "Configure the OpenAI compatible endpoint and tune Enigma to your preferences.",
+    "actions": {
+      "uploadAvatar": "Upload photo",
+      "clearAvatar": "Remove photo"
+    },
     "sections": {
       "account": {
         "title": "Account profile",
         "description": "Personalize how Enigma represents you during automations."
+      },
+      "application": {
+        "title": "Application settings",
+        "description": "Manage connectivity, automation, and language preferences for your copilot."
       },
       "llm": {
         "title": "LLM configuration",
@@ -217,6 +259,7 @@
       "activityLogging": "Activity logging",
       "displayName": "Display name",
       "avatarUrl": "Avatar image URL",
+      "accountEmail": "Account email",
       "preferredLLMVendor": "Preferred LLM vendor",
       "requestTimeoutSeconds": "Request timeout (seconds)",
       "maxRetries": "Retry attempts",
@@ -234,6 +277,8 @@
       "activityLogging": "Maintain a local timeline of Enigma insights",
       "displayName": "Used in summaries and action confirmations",
       "avatarUrl": "Link to an image used when representing your account",
+      "accountEmail": "Used for contact information and login metadata",
+      "avatarUpload": "Images are stored locally and never leave your device",
       "preferredLLMVendor": "Influences headers and defaults for compatible APIs",
       "requestTimeoutSeconds": "Increase if your LLM server responds slowly",
       "maxRetries": "Number of retry attempts before reporting a failure",

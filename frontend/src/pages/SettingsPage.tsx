@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import type { ChangeEvent } from 'react';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import LanguageIcon from '@mui/icons-material/Language';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SaveIcon from '@mui/icons-material/Save';
+import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
+import UploadIcon from '@mui/icons-material/Upload';
 import {
   Avatar,
   Alert,
@@ -45,6 +48,8 @@ const defaultSettings: SettingsPayload = {
   activityLogging: true,
   displayName: '',
   avatarUrl: '',
+  avatarData: '',
+  accountEmail: '',
   preferredLLMVendor: 'openai',
   requestTimeoutSeconds: 15,
   maxRetries: 2,
@@ -61,6 +66,7 @@ export const SettingsPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -80,17 +86,46 @@ export const SettingsPage = () => {
     void fetchSettings();
   }, [i18n]);
 
-  const handleChange = (key: keyof SettingsPayload) => (event: any) => {
-    const value = event?.target?.type === 'checkbox' ? event.target.checked : event.target.value;
+  const handleChange = (key: keyof SettingsPayload) => (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | SelectChangeEvent<string>
+  ) => {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
     setSettings((prev) => ({ ...prev, [key]: value }));
     if (key === 'language') {
       void i18n.changeLanguage(String(value));
     }
   };
 
-  const handleNumberChange = (key: keyof SettingsPayload) => (event: any) => {
+  const handleNumberChange = (key: keyof SettingsPayload) => (event: ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value);
     setSettings((prev) => ({ ...prev, [key]: Number.isNaN(value) ? prev[key] : value }));
+  };
+
+  const handleAvatarUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string') {
+        setSettings((prev) => ({ ...prev, avatarData: result }));
+      }
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  };
+
+  const handleAvatarClear = () => {
+    setSettings((prev) => ({ ...prev, avatarData: '' }));
   };
 
   const handleSave = async () => {
@@ -141,44 +176,103 @@ export const SettingsPage = () => {
 
   return (
     <Card>
-      <CardContent>
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>{t('settings.title')}</Typography>
+          <Typography variant="body1" color="text.secondary">{t('settings.description')}</Typography>
+        </Box>
+
         <Stack spacing={3}>
-          <Box>
-            <Typography variant="h4" fontWeight={700}>{t('settings.title')}</Typography>
-            <Typography variant="body1" color="text.secondary">{t('settings.description')}</Typography>
-          </Box>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar variant="rounded" sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
+              <AccountCircleIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h6">{t('settings.sections.account.title')}</Typography>
+              <Typography variant="body2" color="text.secondary">{t('settings.sections.account.description')}</Typography>
+            </Box>
+          </Stack>
+
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }}>
+            <Avatar
+              src={settings.avatarData || settings.avatarUrl}
+              alt={settings.displayName ?? ''}
+              sx={{ width: 96, height: 96 }}
+            >
+              <AccountCircleIcon fontSize="large" />
+            </Avatar>
+            <Stack spacing={1} width="100%">
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Button
+                  variant="contained"
+                  startIcon={<UploadIcon />}
+                  onClick={handleAvatarUpload}
+                  disabled={loading}
+                >
+                  {t('settings.actions.uploadAvatar')}
+                </Button>
+                {settings.avatarData ? (
+                  <Button onClick={handleAvatarClear} disabled={loading}>
+                    {t('settings.actions.clearAvatar')}
+                  </Button>
+                ) : null}
+              </Stack>
+              <Typography variant="caption" color="text.secondary">{t('settings.hints.avatarUpload')}</Typography>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleAvatarFileChange}
+              />
+            </Stack>
+          </Stack>
+
+          <TextField
+            label={t('settings.fields.displayName')}
+            value={settings.displayName ?? ''}
+            onChange={handleChange('displayName')}
+            helperText={t('settings.hints.displayName')}
+            disabled={loading}
+            fullWidth
+          />
+          <TextField
+            label={t('settings.fields.accountEmail')}
+            value={settings.accountEmail ?? ''}
+            onChange={handleChange('accountEmail')}
+            helperText={t('settings.hints.accountEmail')}
+            disabled={loading}
+            fullWidth
+            type="email"
+          />
+          <TextField
+            label={t('settings.fields.avatarUrl')}
+            value={settings.avatarUrl ?? ''}
+            onChange={handleChange('avatarUrl')}
+            helperText={t('settings.hints.avatarUrl')}
+            disabled={loading}
+            fullWidth
+          />
+        </Stack>
+
+        <Divider flexItem />
+
+        <Stack spacing={3}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar variant="rounded" sx={{ bgcolor: 'secondary.main', width: 56, height: 56 }}>
+              <SettingsApplicationsIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h6">{t('settings.sections.application.title')}</Typography>
+              <Typography variant="body2" color="text.secondary">{t('settings.sections.application.description')}</Typography>
+            </Box>
+          </Stack>
 
           <Stack spacing={2}>
-            <Typography variant="h6">{t('settings.sections.account.title')}</Typography>
-            <Typography variant="body2" color="text.secondary">{t('settings.sections.account.description')}</Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-              <Avatar src={settings.avatarUrl} alt={settings.displayName ?? ''} sx={{ width: 72, height: 72 }}>
-                <LanguageIcon />
-              </Avatar>
-              <Stack spacing={2} flex={1} width="100%">
-                <TextField
-                  label={t('settings.fields.displayName')}
-                  value={settings.displayName ?? ''}
-                  onChange={handleChange('displayName')}
-                  helperText={t('settings.hints.displayName')}
-                  disabled={loading}
-                  fullWidth
-                />
-                <TextField
-                  label={t('settings.fields.avatarUrl')}
-                  value={settings.avatarUrl ?? ''}
-                  onChange={handleChange('avatarUrl')}
-                  helperText={t('settings.hints.avatarUrl')}
-                  disabled={loading}
-                  fullWidth
-                />
-              </Stack>
-            </Stack>
-
-            <Divider flexItem />
-
-            <Typography variant="h6">{t('settings.sections.llm.title')}</Typography>
-            <Typography variant="body2" color="text.secondary">{t('settings.sections.llm.description')}</Typography>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600}>{t('settings.sections.llm.title')}</Typography>
+              <Typography variant="body2" color="text.secondary">{t('settings.sections.llm.description')}</Typography>
+            </Box>
             <TextField
               label={t('settings.fields.apiBaseUrl')}
               value={settings.apiBaseUrl}
@@ -227,27 +321,28 @@ export const SettingsPage = () => {
               disabled={loading}
               fullWidth
             />
-            <TextField
-              label={t('settings.fields.requestTimeoutSeconds')}
-              type="number"
-              value={settings.requestTimeoutSeconds ?? 15}
-              onChange={handleNumberChange('requestTimeoutSeconds')}
-              helperText={t('settings.hints.requestTimeoutSeconds')}
-              disabled={loading}
-              fullWidth
-              inputProps={{ min: 5 }}
-            />
-            <TextField
-              label={t('settings.fields.maxRetries')}
-              type="number"
-              value={settings.maxRetries ?? 1}
-              onChange={handleNumberChange('maxRetries')}
-              helperText={t('settings.hints.maxRetries')}
-              disabled={loading}
-              fullWidth
-              inputProps={{ min: 0, max: 5 }}
-            />
-
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label={t('settings.fields.requestTimeoutSeconds')}
+                type="number"
+                value={settings.requestTimeoutSeconds ?? 15}
+                onChange={handleNumberChange('requestTimeoutSeconds')}
+                helperText={t('settings.hints.requestTimeoutSeconds')}
+                disabled={loading}
+                fullWidth
+                inputProps={{ min: 5 }}
+              />
+              <TextField
+                label={t('settings.fields.maxRetries')}
+                type="number"
+                value={settings.maxRetries ?? 1}
+                onChange={handleNumberChange('maxRetries')}
+                helperText={t('settings.hints.maxRetries')}
+                disabled={loading}
+                fullWidth
+                inputProps={{ min: 0, max: 5 }}
+              />
+            </Stack>
             <FormControl fullWidth>
               <InputLabel id="language-label">{t('settings.fields.language')}</InputLabel>
               <Select
@@ -263,11 +358,15 @@ export const SettingsPage = () => {
               </Select>
               <Typography variant="caption" color="text.secondary">{t('settings.hints.language')}</Typography>
             </FormControl>
+          </Stack>
 
-            <Divider flexItem />
+          <Divider flexItem />
 
-            <Typography variant="h6">{t('settings.sections.network.title')}</Typography>
-            <Typography variant="body2" color="text.secondary">{t('settings.sections.network.description')}</Typography>
+          <Stack spacing={2}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600}>{t('settings.sections.network.title')}</Typography>
+              <Typography variant="body2" color="text.secondary">{t('settings.sections.network.description')}</Typography>
+            </Box>
             <TextField
               label={t('settings.fields.networkProxy')}
               value={settings.networkProxy ?? ''}
@@ -287,11 +386,15 @@ export const SettingsPage = () => {
               label={settings.allowUntrustedCertificates ? t('settings.toggles.enabled') : t('settings.toggles.disabled')}
             />
             <Typography variant="caption" color="text.secondary">{t('settings.hints.allowUntrustedCertificates')}</Typography>
+          </Stack>
 
-            <Divider flexItem />
+          <Divider flexItem />
 
-            <Typography variant="h6">{t('settings.sections.automation.title')}</Typography>
-            <Typography variant="body2" color="text.secondary">{t('settings.sections.automation.description')}</Typography>
+          <Stack spacing={2}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600}>{t('settings.sections.automation.title')}</Typography>
+              <Typography variant="body2" color="text.secondary">{t('settings.sections.automation.description')}</Typography>
+            </Box>
             <FormControlLabel
               control={
                 <Switch
@@ -352,29 +455,29 @@ export const SettingsPage = () => {
               fullWidth
             />
           </Stack>
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="flex-end">
-            <Button
-              variant="contained"
-              startIcon={<CheckCircleIcon />}
-              onClick={() => void handleTestConnection()}
-              color="secondary"
-              disabled={loading}
-            >
-              {t('app.actions.testConnection')}
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<SaveIcon />}
-              onClick={() => void handleSave()}
-              disabled={loading}
-            >
-              {t('app.actions.save')}
-            </Button>
-          </Stack>
-
-          {connectionLabel}
         </Stack>
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="flex-end">
+          <Button
+            variant="contained"
+            startIcon={<CheckCircleIcon />}
+            onClick={() => void handleTestConnection()}
+            color="secondary"
+            disabled={loading}
+          >
+            {t('app.actions.testConnection')}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            onClick={() => void handleSave()}
+            disabled={loading}
+          >
+            {t('app.actions.save')}
+          </Button>
+        </Stack>
+
+        {connectionLabel}
 
         <Snackbar
           open={Boolean(snackbar)}

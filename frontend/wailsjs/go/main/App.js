@@ -25,3 +25,15 @@ export function SaveSettings(arg1) {
 export function TestLLMConnection(arg1) {
   return window['go']['main']['App']['TestLLMConnection'](arg1);
 }
+
+export function GetSession() {
+  return window['go']['main']['App']['GetSession']();
+}
+
+export function Login(arg1) {
+  return window['go']['main']['App']['Login'](arg1);
+}
+
+export function Logout() {
+  return window['go']['main']['App']['Logout']();
+}

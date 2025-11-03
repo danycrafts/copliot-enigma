@@ -37,6 +37,8 @@ export function GetSettings():Promise<{
     activityLogging: boolean;
     displayName?: string;
     avatarUrl?: string;
+    avatarData?: string;
+    accountEmail?: string;
     preferredLLMVendor?: string;
     requestTimeoutSeconds?: number;
     maxRetries?: number;
@@ -56,6 +58,8 @@ export function SaveSettings(arg1:{
     activityLogging: boolean;
     displayName?: string;
     avatarUrl?: string;
+    avatarData?: string;
+    accountEmail?: string;
     preferredLLMVendor?: string;
     requestTimeoutSeconds?: number;
     maxRetries?: number;
@@ -74,6 +78,8 @@ export function SaveSettings(arg1:{
     activityLogging: boolean;
     displayName?: string;
     avatarUrl?: string;
+    avatarData?: string;
+    accountEmail?: string;
     preferredLLMVendor?: string;
     requestTimeoutSeconds?: number;
     maxRetries?: number;
@@ -93,6 +99,8 @@ export function TestLLMConnection(arg1:{
     activityLogging: boolean;
     displayName?: string;
     avatarUrl?: string;
+    avatarData?: string;
+    accountEmail?: string;
     preferredLLMVendor?: string;
     requestTimeoutSeconds?: number;
     maxRetries?: number;
@@ -104,4 +112,38 @@ export function TestLLMConnection(arg1:{
 }):Promise<{
     healthy: boolean;
     message: string;
-}>; 
+}>;
+export function GetSession():Promise<{
+    authenticated: boolean;
+    profile?: {
+        displayName: string;
+        email?: string;
+        avatarUrl?: string;
+        avatarData?: string;
+        lastLogin?: string;
+    } | null;
+}>;
+export function Login(arg1:{
+    username: string;
+    email?: string;
+    password: string;
+}):Promise<{
+    authenticated: boolean;
+    profile?: {
+        displayName: string;
+        email?: string;
+        avatarUrl?: string;
+        avatarData?: string;
+        lastLogin?: string;
+    } | null;
+}>;
+export function Logout():Promise<{
+    authenticated: boolean;
+    profile?: {
+        displayName: string;
+        email?: string;
+        avatarUrl?: string;
+        avatarData?: string;
+        lastLogin?: string;
+    } | null;
+}>;
