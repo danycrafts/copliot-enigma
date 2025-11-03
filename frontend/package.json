@@ -15,7 +15,7 @@
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
     "dayjs": "^1.11.13",
-    "i18next": "^23.12.1",
+    "i18next": "^25.6.0",
     "preact": "^10.23.2",
     "react-i18next": "^15.2.0",
     "react-router-dom": "^6.28.0"
