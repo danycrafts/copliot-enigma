@@ -1,6 +1,6 @@
 import { createContext } from 'preact';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'preact/hooks';
-import type { ComponentChildren, FunctionalComponent } from 'preact';
+import type { ComponentChildren } from 'preact';
 
 import { GetSession, Login, Logout } from '../../wailsjs/go/main/App';
 import type { AuthSession, LoginRequest } from '../types';
@@ -19,7 +19,7 @@ interface AuthProviderProps {
   children: ComponentChildren;
 }
 
-export const AuthProvider: FunctionalComponent<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
