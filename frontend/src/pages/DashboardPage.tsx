@@ -17,7 +17,7 @@ import Grid from '@mui/material/Grid2';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 
-import { GetOverview } from '../wailsjs/go/main/App';
+import { GetOverview } from '../../wailsjs/go/main/App';
 import type { ActivityEvent, Overview } from '../types';
 
 const formatTimestamp = (value: string, locale: string) => dayjs(value).locale(locale).format('LLL');

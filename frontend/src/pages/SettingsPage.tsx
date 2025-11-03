@@ -25,7 +25,7 @@ import {
   GetSettings,
   SaveSettings,
   TestLLMConnection
-} from '../wailsjs/go/main/App';
+} from '../../wailsjs/go/main/App';
 import type { ConnectionStatus, SettingsPayload } from '../types';
 
 const languageOptions = [
