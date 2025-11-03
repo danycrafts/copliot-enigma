@@ -87,7 +87,10 @@ const NavigationBar = () => {
             <Select
               size="small"
               value={i18n.language}
-              onChange={(event: SelectChangeEvent<string>) => void i18n.changeLanguage(event.target.value)}
+              onChange={(event: SelectChangeEvent<string>) => {
+                const { value } = event.target as typeof event.target & { value: string };
+                void i18n.changeLanguage(value);
+              }}
               sx={{ color: 'inherit', minWidth: 120 }}
             >
               {languageOptions.map((code) => (

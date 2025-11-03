@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext } from 'preact';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'preact/hooks';
 import type { PropsWithChildren } from 'react';
 
 import { GetSession, Login, Logout } from '../../wailsjs/go/main/App';
