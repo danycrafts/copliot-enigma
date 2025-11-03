@@ -54,17 +54,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
-        run: npm ci --prefix frontend
+      - name: Build project with Wails
+        uses: dAppServer/wails-build-action@v2.2
+        with:
+          build-name: lint
+          build-platform: linux/amd64
+          go-version: ${{ env.GO_VERSION }}
+          package: false
 
       - name: Type check & lint frontend
         run: npm run lint --prefix frontend
-
-      - name: Build frontend bundle
-        run: npm run build --prefix frontend
 
   test:
     name: Test
