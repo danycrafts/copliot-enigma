@@ -8,6 +8,10 @@ import {
   CardHeader,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   List,
   ListItem,
   ListItemText,
@@ -28,6 +32,16 @@ export const DashboardPage = () => {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
+
+  const interactiveCardSx = {
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-3px)',
+      boxShadow: 6
+    }
+  } as const;
 
   const activitySample = overview?.activitySample ?? [];
 
@@ -223,6 +237,115 @@ export const DashboardPage = () => {
     </ListItem>
   );
 
+  const panelDetail = useMemo(() => {
+    if (!selectedPanel) {
+      return null;
+    }
+
+    switch (selectedPanel) {
+      case 'status':
+        return {
+          title: t('dashboard.details.statusTitle'),
+          description: t('dashboard.details.statusDescription'),
+          content: (
+            <Stack spacing={2}>
+              {overview?.connectionStatus ? (
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Chip
+                    color={overview.connectionStatus.healthy ? 'success' : 'warning'}
+                    label={overview.connectionStatus.healthy ? t('dashboard.status.healthy') : t('dashboard.status.unhealthy')}
+                  />
+                  <Typography variant="body2">{overview.connectionStatus.message}</Typography>
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary">{t('dashboard.activity.empty')}</Typography>
+              )}
+              {overview?.settingsPath ? (
+                <Typography variant="caption" color="text.secondary">{t('dashboard.settingsPath', { path: overview.settingsPath })}</Typography>
+              ) : null}
+              {overview?.lastRefresh ? (
+                <Typography variant="body2">{t('dashboard.details.lastRefresh', { timestamp: formatTimestamp(overview.lastRefresh, i18n.language) })}</Typography>
+              ) : null}
+            </Stack>
+          )
+        };
+      case 'health':
+        return {
+          title: t('dashboard.details.healthTitle'),
+          description: t('dashboard.details.healthDescription'),
+          content: (
+            <Stack spacing={2}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Typography variant="body2" fontWeight={600}>{t('dashboard.metrics.lastSync')}</Typography>
+                <Typography variant="body2">{overview ? formatTimestamp(overview.lastRefresh, i18n.language) : t('dashboard.metrics.unknown')}</Typography>
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Typography variant="body2" fontWeight={600}>{t('dashboard.metrics.activeLanguage')}</Typography>
+                <Chip label={t(`languages.${overview?.activeLanguage ?? 'en'}`)} color="primary" variant="outlined" />
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Typography variant="body2" fontWeight={600}>{t('dashboard.metrics.averageConfidence')}</Typography>
+                <Typography variant="body2">{averageConfidence}%</Typography>
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Typography variant="body2" fontWeight={600}>{t('dashboard.metrics.topCategory')}</Typography>
+                <Typography variant="body2">{topCategory ?? t('dashboard.metrics.unknown')}</Typography>
+              </Stack>
+            </Stack>
+          )
+        };
+      case 'activity':
+        return {
+          title: t('dashboard.details.activityTitle'),
+          description: t('dashboard.details.activityDescription'),
+          content: overview?.activitySample?.length ? (
+            <List>{overview.activitySample.map(renderActivity)}</List>
+          ) : (
+            <Typography variant="body2" color="text.secondary">{t('dashboard.activity.empty')}</Typography>
+          )
+        };
+      case 'timeline':
+        return {
+          title: t('dashboard.analytics.timelineTitle'),
+          description: t('dashboard.details.timelineDescription'),
+          content: activityByHour.length ? renderTimelineBars(activityByHour) : (
+            <Typography variant="body2" color="text.secondary">{t('dashboard.activity.empty')}</Typography>
+          )
+        };
+      case 'confidence':
+        return {
+          title: t('dashboard.analytics.confidenceTitle'),
+          description: t('dashboard.details.confidenceDescription'),
+          content: confidenceTrend.length ? renderConfidenceSparkline(confidenceTrend) : (
+            <Typography variant="body2" color="text.secondary">{t('dashboard.activity.empty')}</Typography>
+          )
+        };
+      case 'category':
+        return {
+          title: t('dashboard.analytics.categoryTitle'),
+          description: t('dashboard.details.categoryDescription'),
+          content: categoryDistribution.length ? renderCategoryBreakdown(categoryDistribution) : (
+            <Typography variant="body2" color="text.secondary">{t('dashboard.activity.empty')}</Typography>
+          )
+        };
+      case 'telemetry':
+        return {
+          title: t('dashboard.details.telemetryTitle'),
+          description: t('dashboard.details.telemetryDescription'),
+          content: (
+            <Stack spacing={2}>
+              <Typography variant="body2">{t('dashboard.telemetry.desktop')}: {overview?.desktopCaptureEnabled ? t('dashboard.telemetry.enabled') : t('dashboard.telemetry.disabled')}</Typography>
+              <Typography variant="body2">{t('dashboard.telemetry.activity')}: {overview?.activityLogging ? t('dashboard.telemetry.enabled') : t('dashboard.telemetry.disabled')}</Typography>
+            </Stack>
+          )
+        };
+      default:
+        return null;
+    }
+  }, [selectedPanel, overview, t, i18n.language, activityByHour, confidenceTrend, categoryDistribution, averageConfidence, topCategory]);
+
+  const closePanel = () => setSelectedPanel(null);
+
   return (
     <Stack spacing={3}>
       <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" spacing={2}>
@@ -245,7 +368,7 @@ export const DashboardPage = () => {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('status')} sx={interactiveCardSx}>
             <CardContent>
               <Typography variant="h6" gutterBottom>{t('dashboard.status.label')}</Typography>
               {loading && !overview ? (
@@ -271,7 +394,7 @@ export const DashboardPage = () => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('health')} sx={interactiveCardSx}>
             <CardContent>
               <Typography variant="h6" gutterBottom>{t('dashboard.metrics.healthTitle')}</Typography>
               <Grid container spacing={2}>
@@ -307,7 +430,7 @@ export const DashboardPage = () => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('activity')} sx={interactiveCardSx}>
             <CardContent>
               <Typography variant="h6" gutterBottom>{t('dashboard.activity.title')}</Typography>
               {overview?.activitySample?.length ? (
@@ -322,7 +445,7 @@ export const DashboardPage = () => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('timeline')} sx={interactiveCardSx}>
             <CardHeader title={t('dashboard.analytics.timelineTitle')} subheader={t('dashboard.analytics.timelineDescription')} />
             <CardContent>
               {activityByHour.length ? (
@@ -335,7 +458,7 @@ export const DashboardPage = () => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('confidence')} sx={interactiveCardSx}>
             <CardHeader title={t('dashboard.analytics.confidenceTitle')} subheader={t('dashboard.analytics.confidenceDescription')} />
             <CardContent>
               {confidenceTrend.length ? (
@@ -348,7 +471,7 @@ export const DashboardPage = () => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('category')} sx={interactiveCardSx}>
             <CardHeader title={t('dashboard.analytics.categoryTitle')} subheader={t('dashboard.analytics.categoryDescription')} />
             <CardContent>
               {categoryDistribution.length ? (
@@ -361,7 +484,7 @@ export const DashboardPage = () => {
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <Card>
+          <Card onClick={() => setSelectedPanel('telemetry')} sx={interactiveCardSx}>
             <CardContent>
               <Typography variant="h6" gutterBottom>{t('dashboard.telemetry.desktop')}</Typography>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
@@ -382,6 +505,25 @@ export const DashboardPage = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Dialog open={Boolean(panelDetail)} onClose={closePanel} fullWidth maxWidth="md">
+        {panelDetail ? (
+          <>
+            <DialogTitle>{panelDetail.title}</DialogTitle>
+            <DialogContent dividers>
+              {panelDetail.description ? (
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {panelDetail.description}
+                </Typography>
+              ) : null}
+              {panelDetail.content}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={closePanel}>{t('app.actions.close')}</Button>
+            </DialogActions>
+          </>
+        ) : null}
+      </Dialog>
     </Stack>
   );
 };

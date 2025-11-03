@@ -204,7 +204,7 @@ export const ActivityPage = () => {
 
   return (
     <Card>
-      <CardContent>
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: { xs: 2, md: 4 } }}>
         <Typography variant="h4" fontWeight={700} gutterBottom>
           {t('activity.title')}
         </Typography>
@@ -242,7 +242,7 @@ export const ActivityPage = () => {
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" gutterBottom>{t('activity.charts.timelineTitle')}</Typography>
               <Card elevation={0} sx={{ backgroundColor: 'transparent', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                   {activityTimeline.length ? (
                     renderTimeline(activityTimeline)
                   ) : (
@@ -255,7 +255,7 @@ export const ActivityPage = () => {
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" gutterBottom>{t('activity.charts.confidenceTitle')}</Typography>
               <Card elevation={0} sx={{ backgroundColor: 'transparent', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                   {confidenceSparkline.length ? (
                     renderConfidenceSparkline(confidenceSparkline)
                   ) : (
@@ -268,7 +268,7 @@ export const ActivityPage = () => {
             <Grid size={{ xs: 12 }}>
               <Typography variant="h6" gutterBottom>{t('activity.charts.categoryTitle')}</Typography>
               <Card elevation={0} sx={{ backgroundColor: 'transparent', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                   {categorySplit.length ? (
                     renderCategoryList(categorySplit)
                   ) : (

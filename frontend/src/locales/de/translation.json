@@ -7,7 +7,8 @@
       "refresh": "Aktualisieren",
       "save": "Einstellungen speichern",
       "testConnection": "Verbindung testen",
-      "viewAll": "Alle anzeigen"
+      "viewAll": "Alle anzeigen",
+      "close": "Schließen"
     },
     "notifications": {
       "settingsSaved": "Einstellungen erfolgreich gespeichert",
@@ -25,6 +26,25 @@
     "activity": "Aktivität",
     "actions": "Aktionen",
     "settings": "Einstellungen"
+  },
+  "auth": {
+    "loginTitle": "Bei Enigma anmelden",
+    "guest": "Gast",
+    "menuTitle": "Angemeldet als {{name}}",
+    "menu": {
+      "settings": "Kontoeinstellungen"
+    },
+    "fields": {
+      "username": "Benutzername",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort"
+    },
+    "actions": {
+      "openLogin": "Anmelden",
+      "login": "Anmelden",
+      "cancel": "Abbrechen",
+      "logout": "Abmelden"
+    }
   },
   "dashboard": {
     "title": "Operationsübersicht",
@@ -62,6 +82,20 @@
       "categoryDescription": "Wo Enigma während deiner Sitzungen die meiste Aufmerksamkeit verbringt.",
       "eventsLabel": "Ereignisse",
       "confidenceLabel": "Vertrauen"
+    },
+    "details": {
+      "statusTitle": "Verbindungsdetails",
+      "statusDescription": "Prüfe den letzten Gesundheitscheck und den Speicherort der Einstellungen.",
+      "lastRefresh": "Zuletzt geprüft {{timestamp}}",
+      "healthTitle": "Gesundheitsdetails",
+      "healthDescription": "Zeigt die Signale, die den Gesamtzustand beeinflussen.",
+      "activityTitle": "Aktuelle Beobachtungen",
+      "activityDescription": "Erweiterte Ansicht der zuletzt aufgezeichneten Ereignisse.",
+      "timelineDescription": "Tägliche Kadenz der Beobachtungen im aktuellen Zeitraum.",
+      "confidenceDescription": "Vertrauenstrend mit zeitlichem Kontext.",
+      "categoryDescription": "Verteilung der Aktivität auf Fokusbereiche.",
+      "telemetryTitle": "Telemetrie-Einstellungen",
+      "telemetryDescription": "Kurzer Überblick über die aktivierten Erfassungsoptionen."
     }
   },
   "activity": {
@@ -189,10 +223,18 @@
   "settings": {
     "title": "LLM- und Erlebnis-Einstellungen",
     "description": "Konfiguriere den OpenAI-kompatiblen Endpunkt und passe Enigma an deine Bedürfnisse an.",
+    "actions": {
+      "uploadAvatar": "Foto hochladen",
+      "clearAvatar": "Foto entfernen"
+    },
     "sections": {
       "account": {
         "title": "Kontoprofil",
         "description": "Personalisierung, wie Enigma dich bei Automationen repräsentiert."
+      },
+      "application": {
+        "title": "App-Einstellungen",
+        "description": "Verwalte Konnektivität, Automatisierung und Sprache deines Copiloten."
       },
       "llm": {
         "title": "LLM-Konfiguration",
@@ -217,6 +259,7 @@
       "activityLogging": "Aktivitätsprotokoll",
       "displayName": "Anzeigename",
       "avatarUrl": "Avatar-URL",
+      "accountEmail": "Konto-E-Mail",
       "preferredLLMVendor": "Bevorzugter LLM-Anbieter",
       "requestTimeoutSeconds": "Timeout (Sekunden)",
       "maxRetries": "Wiederholversuche",
@@ -234,6 +277,8 @@
       "activityLogging": "Hält eine lokale Zeitleiste der Erkenntnisse vor",
       "displayName": "Verwendet in Zusammenfassungen und Bestätigungen",
       "avatarUrl": "Link zum Bild, das dein Konto repräsentiert",
+      "accountEmail": "Wird für Kontaktdaten und Anmeldeprotokolle genutzt",
+      "avatarUpload": "Bilder werden lokal gespeichert und nicht übertragen",
       "preferredLLMVendor": "Bestimmt Header und Standardwerte für kompatible APIs",
       "requestTimeoutSeconds": "Erhöhe den Wert bei langsamen Antworten",
       "maxRetries": "Anzahl der Versuche vor einer Fehlermeldung",

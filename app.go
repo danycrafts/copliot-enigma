@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"copilot-enigma/internal/activity"
@@ -15,6 +17,7 @@ type App struct {
 	ctx           context.Context
 	settingsStore *settings.Store
 	currentConfig settings.Settings
+	session       SessionState
 }
 
 // Overview represents quick insights about the desktop copilot health state.
@@ -23,9 +26,31 @@ type Overview struct {
 	DesktopCaptureEnabled bool                  `json:"desktopCaptureEnabled"`
 	ActivityLogging       bool                  `json:"activityLogging"`
 	ActiveLanguage        string                `json:"activeLanguage"`
-	LastRefresh           time.Time             `json:"lastRefresh"`
+	LastRefresh           string                `json:"lastRefresh"`
 	ActivitySample        []activity.Event      `json:"activitySample"`
 	ConnectionStatus      *llm.ConnectionStatus `json:"connectionStatus"`
+}
+
+// AccountProfile summarizes the authenticated user's profile information.
+type AccountProfile struct {
+	DisplayName string `json:"displayName"`
+	Email       string `json:"email,omitempty"`
+	AvatarURL   string `json:"avatarUrl,omitempty"`
+	AvatarData  string `json:"avatarData,omitempty"`
+	LastLogin   string `json:"lastLogin,omitempty"`
+}
+
+// SessionState captures the authentication status for the desktop app.
+type SessionState struct {
+	Authenticated bool            `json:"authenticated"`
+	Profile       *AccountProfile `json:"profile,omitempty"`
+}
+
+// LoginRequest carries the credentials used to initiate a local session.
+type LoginRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password"`
 }
 
 // NewApp creates a new App application struct
@@ -38,6 +63,49 @@ func NewApp() *App {
 	return &App{
 		settingsStore: store,
 		currentConfig: settings.DefaultSettings(),
+		session:       SessionState{Authenticated: false},
+	}
+}
+
+func (a *App) profileFromSettings(lastLogin string) *AccountProfile {
+	cfg := a.currentConfig
+
+	if cfg.DisplayName == "" && cfg.AccountEmail == "" && cfg.AvatarURL == "" && cfg.AvatarData == "" {
+		if lastLogin == "" {
+			return nil
+		}
+
+		return &AccountProfile{LastLogin: lastLogin}
+	}
+
+	profile := &AccountProfile{
+		DisplayName: cfg.DisplayName,
+		Email:       cfg.AccountEmail,
+		AvatarURL:   cfg.AvatarURL,
+		AvatarData:  cfg.AvatarData,
+		LastLogin:   lastLogin,
+	}
+
+	return profile
+}
+
+func (a *App) refreshSessionProfile(lastLogin string) {
+	loginTimestamp := lastLogin
+	if loginTimestamp == "" && a.session.Profile != nil {
+		loginTimestamp = a.session.Profile.LastLogin
+	}
+
+	if !a.session.Authenticated {
+		a.session.Profile = a.profileFromSettings(loginTimestamp)
+		return
+	}
+
+	a.session.Profile = &AccountProfile{
+		DisplayName: a.currentConfig.DisplayName,
+		Email:       a.currentConfig.AccountEmail,
+		AvatarURL:   a.currentConfig.AvatarURL,
+		AvatarData:  a.currentConfig.AvatarData,
+		LastLogin:   loginTimestamp,
 	}
 }
 
@@ -47,6 +115,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	if a.settingsStore == nil {
+		a.refreshSessionProfile("")
 		return
 	}
 
@@ -57,6 +126,7 @@ func (a *App) startup(ctx context.Context) {
 	}
 
 	a.currentConfig = cfg
+	a.refreshSessionProfile("")
 }
 
 // Greet returns a greeting for the given name
@@ -72,6 +142,7 @@ func (a *App) GetSettings() settings.Settings {
 // SaveSettings persists configuration and updates the cached copy.
 func (a *App) SaveSettings(cfg settings.Settings) (settings.Settings, error) {
 	a.currentConfig = cfg
+	a.refreshSessionProfile("")
 
 	if a.settingsStore == nil {
 		return cfg, nil
@@ -104,7 +175,8 @@ func (a *App) TestLLMConnection(cfg settings.Settings) (*llm.ConnectionStatus, e
 
 // GetOverview composes a summary of the current system status.
 func (a *App) GetOverview() (*Overview, error) {
-	sample := activity.SampleFeed(time.Now())
+	now := time.Now()
+	sample := activity.SampleFeed(now)
 
 	status, err := llm.Probe(context.Background(), a.currentConfig)
 	if err != nil {
@@ -116,7 +188,7 @@ func (a *App) GetOverview() (*Overview, error) {
 		DesktopCaptureEnabled: a.currentConfig.DesktopCaptureEnabled,
 		ActivityLogging:       a.currentConfig.ActivityLogging,
 		ActiveLanguage:        a.currentConfig.Language,
-		LastRefresh:           time.Now(),
+		LastRefresh:           now.Format(time.RFC3339Nano),
 		ActivitySample:        sample,
 		ConnectionStatus:      status,
 	}
@@ -131,4 +203,47 @@ func (a *App) GetOverview() (*Overview, error) {
 // GetRecentActivity returns desktop observations currently cached on the backend.
 func (a *App) GetRecentActivity() ([]activity.Event, error) {
 	return activity.SampleFeed(time.Now()), nil
+}
+
+// GetSession returns the current authentication session state.
+func (a *App) GetSession() *SessionState {
+	a.refreshSessionProfile("")
+	state := a.session
+	return &state
+}
+
+// Login begins a local session after validating input credentials.
+func (a *App) Login(req LoginRequest) (*SessionState, error) {
+	username := strings.TrimSpace(req.Username)
+	password := strings.TrimSpace(req.Password)
+
+	if username == "" || password == "" {
+		return nil, errors.New("username and password are required")
+	}
+
+	if req.Email != "" {
+		a.currentConfig.AccountEmail = strings.TrimSpace(req.Email)
+	}
+
+	a.currentConfig.DisplayName = username
+	a.session.Authenticated = true
+
+	loginTime := time.Now().Format(time.RFC3339Nano)
+	a.refreshSessionProfile(loginTime)
+
+	return a.GetSession(), nil
+}
+
+// Logout clears the active session information.
+func (a *App) Logout() (*SessionState, error) {
+	lastLogin := ""
+	if a.session.Profile != nil {
+		lastLogin = a.session.Profile.LastLogin
+	}
+
+	a.session.Authenticated = false
+	a.refreshSessionProfile(lastLogin)
+
+	state := a.session
+	return &state, nil
 }

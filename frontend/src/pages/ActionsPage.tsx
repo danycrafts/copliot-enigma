@@ -36,10 +36,10 @@ export const ActionsPage = () => {
   const { t } = useTranslation();
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ '& .MuiCardContent-root': { p: { xs: 2, md: 3 } } }}>
       <Card>
         <CardContent>
-          <Stack spacing={1}>
+          <Stack spacing={1.5}>
             <Typography variant="h4" fontWeight={700}>{t('actions.title')}</Typography>
             <Typography variant="body1" color="text.secondary">{t('actions.description')}</Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -56,7 +56,7 @@ export const ActionsPage = () => {
           <Grid key={group.key} size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
-                <Stack spacing={1}>
+                <Stack spacing={1.5}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     {group.icon}
                     <Typography variant="h6">{t(`actions.groups.${group.key}.title`)}</Typography>
@@ -98,7 +98,7 @@ export const ActionsPage = () => {
 
       <Card>
         <CardContent>
-          <Stack spacing={2}>
+          <Stack spacing={2.5}>
             <Typography variant="h6">{t('actions.playbook.title')}</Typography>
             <Typography variant="body2" color="text.secondary">{t('actions.playbook.description')}</Typography>
             <Grid container spacing={2}>

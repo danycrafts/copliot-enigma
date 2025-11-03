@@ -20,6 +20,8 @@ type Settings struct {
 	ActivityLogging       bool   `json:"activityLogging"`
 	DisplayName           string `json:"displayName,omitempty"`
 	AvatarURL             string `json:"avatarUrl,omitempty"`
+	AvatarData            string `json:"avatarData,omitempty"`
+	AccountEmail          string `json:"accountEmail,omitempty"`
 	PreferredLLMVendor    string `json:"preferredLLMVendor,omitempty"`
 	RequestTimeoutSeconds int    `json:"requestTimeoutSeconds,omitempty"`
 	MaxRetries            int    `json:"maxRetries,omitempty"`
