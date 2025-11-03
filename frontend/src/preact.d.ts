@@ -1,4 +1,4 @@
-import { JSX as PreactJSX } from 'preact';
+import { JSX as PreactJSX, type ComponentChildren } from 'preact';
 
 declare global {
   namespace JSX {
@@ -14,6 +14,10 @@ declare module 'react' {
   export * from 'preact/compat';
   const defaultExport: typeof import('preact/compat').default;
   export default defaultExport;
+  export type PropsWithChildren<P = unknown> = P & { children?: ComponentChildren | undefined };
+  export type MouseEvent<T = Element> = PreactJSX.TargetedEvent<T, globalThis.MouseEvent>;
+  export type ChangeEvent<T = Element> = PreactJSX.TargetedEvent<T, Event>;
+  export type FormEvent<T = Element> = PreactJSX.TargetedEvent<T, Event>;
 }
 
 declare module 'react-dom' {
