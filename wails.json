@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "copilot-enigma",
+  "outputfilename": "copilot-enigma",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "danycrafts",
+    "email": "daniyal.ibrahim10@gmail.com"
+  }
+}
