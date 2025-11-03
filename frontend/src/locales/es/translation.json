@@ -7,7 +7,8 @@
       "refresh": "Actualizar",
       "save": "Guardar ajustes",
       "testConnection": "Probar conexión",
-      "viewAll": "Ver todo"
+      "viewAll": "Ver todo",
+      "close": "Cerrar"
     },
     "notifications": {
       "settingsSaved": "Ajustes guardados correctamente",
@@ -25,6 +26,25 @@
     "activity": "Actividad",
     "actions": "Acciones",
     "settings": "Configuración"
+  },
+  "auth": {
+    "loginTitle": "Inicia sesión en Enigma",
+    "guest": "Invitado",
+    "menuTitle": "Sesión iniciada como {{name}}",
+    "menu": {
+      "settings": "Configuración de cuenta"
+    },
+    "fields": {
+      "username": "Nombre de usuario",
+      "email": "Correo electrónico",
+      "password": "Contraseña"
+    },
+    "actions": {
+      "openLogin": "Iniciar sesión",
+      "login": "Iniciar sesión",
+      "cancel": "Cancelar",
+      "logout": "Cerrar sesión"
+    }
   },
   "dashboard": {
     "title": "Resumen de operaciones",
@@ -62,6 +82,20 @@
       "categoryDescription": "Dónde concentra Enigma su atención durante tus sesiones.",
       "eventsLabel": "Eventos",
       "confidenceLabel": "Confianza"
+    },
+    "details": {
+      "statusTitle": "Detalles de la conexión",
+      "statusDescription": "Consulta la última verificación y la ruta de almacenamiento de los ajustes.",
+      "lastRefresh": "Última comprobación {{timestamp}}",
+      "healthTitle": "Desglose de salud",
+      "healthDescription": "Comprende las señales que influyen en el estado general.",
+      "activityTitle": "Observaciones recientes",
+      "activityDescription": "Vista ampliada de los eventos más recientes capturados por Enigma.",
+      "timelineDescription": "Cadencia diaria de observaciones en la ventana actual.",
+      "confidenceDescription": "Tendencia de confianza con marcas temporales contextuales.",
+      "categoryDescription": "Distribución de la actividad entre las categorías de enfoque.",
+      "telemetryTitle": "Configuración de telemetría",
+      "telemetryDescription": "Resumen rápido de las preferencias de captura activadas."
     }
   },
   "activity": {
@@ -189,10 +223,18 @@
   "settings": {
     "title": "Ajustes de LLM y experiencia",
     "description": "Configura el punto final compatible con OpenAI y adapta Enigma a tus preferencias.",
+    "actions": {
+      "uploadAvatar": "Subir foto",
+      "clearAvatar": "Quitar foto"
+    },
     "sections": {
       "account": {
         "title": "Perfil de cuenta",
         "description": "Personaliza cómo te representa Enigma durante las automatizaciones."
+      },
+      "application": {
+        "title": "Ajustes de la aplicación",
+        "description": "Gestiona conectividad, automatización e idioma del copiloto."
       },
       "llm": {
         "title": "Configuración LLM",
@@ -217,6 +259,7 @@
       "activityLogging": "Registro de actividad",
       "displayName": "Nombre visible",
       "avatarUrl": "URL del avatar",
+      "accountEmail": "Correo de la cuenta",
       "preferredLLMVendor": "Proveedor LLM preferido",
       "requestTimeoutSeconds": "Tiempo de espera (segundos)",
       "maxRetries": "Intentos de reintento",
@@ -234,6 +277,8 @@
       "activityLogging": "Mantiene un historial local de información",
       "displayName": "Se usa en resúmenes y confirmaciones",
       "avatarUrl": "Enlace a la imagen que representa tu cuenta",
+      "accountEmail": "Se utiliza para información de contacto y registros de acceso",
+      "avatarUpload": "Las imágenes se guardan localmente y no salen de tu dispositivo",
       "preferredLLMVendor": "Define cabeceras y valores por defecto compatibles",
       "requestTimeoutSeconds": "Aumenta el valor si tu servidor responde lento",
       "maxRetries": "Número de intentos antes de reportar error",
