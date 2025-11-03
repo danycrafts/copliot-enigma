@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { ChangeEvent } from 'react';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SaveIcon from '@mui/icons-material/Save';
@@ -106,8 +105,8 @@ export const SettingsPage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.target;
+  const handleAvatarFileChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) {
       return;
@@ -115,9 +114,8 @@ export const SettingsPage = () => {
 
     const reader = new FileReader();
     reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, avatarData: result }));
+      if (typeof reader.result === 'string') {
+        setSettings((prev) => ({ ...prev, avatarData: reader.result }));
       }
     };
     reader.readAsDataURL(file);

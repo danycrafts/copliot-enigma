@@ -1,5 +1,4 @@
 import { useState } from 'preact/hooks';
-import type { ChangeEvent } from 'react';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -49,10 +48,6 @@ export const LoginDialog = ({ open, onClose, onSuccess }: LoginDialogProps) => {
     onClose();
   };
 
-  const handleFieldChange = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => {
-    setter(event.target.value);
-  };
-
   return (
     <Dialog open={open} onClose={handleCancel} fullWidth maxWidth="sm" component="form" onSubmit={handleSubmit}>
       <DialogTitle>{t('auth.loginTitle')}</DialogTitle>
@@ -62,19 +57,19 @@ export const LoginDialog = ({ open, onClose, onSuccess }: LoginDialogProps) => {
             autoFocus
             label={t('auth.fields.username')}
             value={username}
-            onChange={handleFieldChange(setUsername)}
+            onChange={(event) => setUsername((event.target as HTMLInputElement).value)}
             required
           />
           <TextField
             label={t('auth.fields.email')}
             value={email}
-            onChange={handleFieldChange(setEmail)}
+            onChange={(event) => setEmail((event.target as HTMLInputElement).value)}
             type="email"
           />
           <TextField
             label={t('auth.fields.password')}
             value={password}
-            onChange={handleFieldChange(setPassword)}
+            onChange={(event) => setPassword((event.target as HTMLInputElement).value)}
             type="password"
             required
           />

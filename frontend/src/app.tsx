@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'preact/hooks';
-import type { MouseEvent } from 'react';
 import BoltIcon from '@mui/icons-material/Bolt';
 import LanguageIcon from '@mui/icons-material/Language';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -98,7 +97,7 @@ const NavigationBar = () => {
           {authenticated ? (
             <Stack direction="row" spacing={1} alignItems="center">
               <Tooltip title={t('auth.menuTitle', { name: displayName })}>
-                <IconButton onClick={(event: MouseEvent<HTMLButtonElement>) => setMenuAnchor(event.currentTarget)} size="small" color="inherit">
+                <IconButton onClick={(event) => setMenuAnchor(event.currentTarget)} size="small" color="inherit">
                   <Avatar src={avatarSource} alt={displayName}>
                     <PersonIcon fontSize="small" />
                   </Avatar>
