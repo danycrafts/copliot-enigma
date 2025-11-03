@@ -1,0 +1,267 @@
+{
+  "app": {
+    "title": "Enigma Desktop Copilot",
+    "tagline": "Persönlicher Desktop-Copilot für fokussierte Arbeitsabläufe",
+    "language": "Sprache",
+    "actions": {
+      "refresh": "Aktualisieren",
+      "save": "Einstellungen speichern",
+      "testConnection": "Verbindung testen",
+      "viewAll": "Alle anzeigen"
+    },
+    "notifications": {
+      "settingsSaved": "Einstellungen erfolgreich gespeichert",
+      "connectionSuccess": "Verbindung bestätigt",
+      "connectionFailed": "Verbindung fehlgeschlagen"
+    }
+  },
+  "languages": {
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "activity": "Aktivität",
+    "actions": "Aktionen",
+    "settings": "Einstellungen"
+  },
+  "dashboard": {
+    "title": "Operationsübersicht",
+    "status": {
+      "label": "LLM-Verbindung",
+      "healthy": "Betriebsbereit",
+      "unhealthy": "Aufmerksamkeit erforderlich"
+    },
+    "settingsPath": "Einstellungen gespeichert unter {{path}}",
+    "telemetry": {
+      "desktop": "Desktopaufzeichnung",
+      "activity": "Aktivitätsprotokoll",
+      "enabled": "Aktiv",
+      "disabled": "Inaktiv"
+    },
+    "activity": {
+      "title": "Neueste Aktivität",
+      "empty": "Noch keine Beobachtungen verfügbar",
+      "confidence": "Vertrauen"
+    },
+    "metrics": {
+      "healthTitle": "Gesundheitsstatus",
+      "lastSync": "Letzte Aktualisierung",
+      "activeLanguage": "Aktive Sprache",
+      "averageConfidence": "Durchschnittliches Vertrauen",
+      "topCategory": "Häufigste Kategorie",
+      "unknown": "Nicht verfügbar"
+    },
+    "analytics": {
+      "timelineTitle": "Zeitliche Kadenz",
+      "timelineDescription": "Verteilung der erfassten Erkenntnisse über den Tag.",
+      "confidenceTitle": "Vertrauensdynamik",
+      "confidenceDescription": "Wie sicher sich Enigma bei den letzten Erkenntnissen ist.",
+      "categoryTitle": "Fokusschwerpunkte",
+      "categoryDescription": "Wo Enigma während deiner Sitzungen die meiste Aufmerksamkeit verbringt.",
+      "eventsLabel": "Ereignisse",
+      "confidenceLabel": "Vertrauen"
+    }
+  },
+  "activity": {
+    "title": "Aktivitätsverlauf",
+    "description": "Analysiere die von Enigma generierten Beobachtungen, um deine Arbeitsmuster zu verstehen.",
+    "emptyState": "Für den ausgewählten Zeitraum wurde keine Aktivität aufgezeichnet.",
+    "metrics": {
+      "totalEvents": "Ereignisse gesamt",
+      "uniqueCategories": "Einzigartige Kategorien",
+      "averageConfidence": "Durchschnittliches Vertrauen",
+      "busiestHour": "Höchste Auslastung"
+    },
+    "charts": {
+      "timelineTitle": "Aktivitätstrend",
+      "confidenceTitle": "Vertrauenstrend",
+      "categoryTitle": "Kategorieverteilung",
+      "eventsLabel": "Ereignisse",
+      "confidenceLabel": "Vertrauen"
+    },
+    "table": {
+      "title": "Ereignisprotokoll",
+      "category": "Kategorie",
+      "description": "Beschreibung",
+      "timestamp": "Zeitstempel",
+      "confidence": "Vertrauen"
+    }
+  },
+  "actions": {
+    "title": "Aktionskatalog",
+    "description": "Entdecke, welche Aufgaben Enigma automatisieren oder beschleunigen kann, während du die Kontrolle behältst.",
+    "badges": {
+      "autonomous": "Autonom",
+      "humanInLoop": "Mit Freigabe",
+      "compliance": "Konform"
+    },
+    "groups": {
+      "guidance": {
+        "title": "Geführte Einblicke",
+        "description": "Schnelle Antworten und proaktive Hinweise für fokussiertes Arbeiten."
+      },
+      "automation": {
+        "title": "Automatisierung",
+        "description": "Freihändige Aktionen für wiederkehrende Laptop-Aufgaben."
+      },
+      "safety": {
+        "title": "Sicherheit & Vertrauen",
+        "description": "Kontrollen zum Schutz deiner Daten und Richtlinien."
+      }
+    },
+    "items": {
+      "dailyBrief": {
+        "name": "Tagesbriefing",
+        "description": "Fasst Neuigkeiten, Kalenderkontext und Warnungen vor Arbeitsbeginn zusammen.",
+        "automation": "Assistiert",
+        "frequency": "Morgens"
+      },
+      "contextSummary": {
+        "name": "Kontextzusammenfassung",
+        "description": "Erstellt auf Abruf Zusammenfassungen des aktiven Fensters, Chats oder Dokuments.",
+        "automation": "Manuell",
+        "frequency": "Bei Bedarf"
+      },
+      "focusPlan": {
+        "name": "Fokusplan",
+        "description": "Erstellt einen kurzen Aktionsplan mit Timern und Erinnerungen für deine Aufgaben.",
+        "automation": "Assistiert",
+        "frequency": "Sitzung"
+      },
+      "browserAutomation": {
+        "name": "Browser-Automatisierung",
+        "description": "Öffnet den bevorzugten Browser, navigiert und führt Skripts aus.",
+        "automation": "Autonom",
+        "frequency": "Bei Bedarf"
+      },
+      "workspacePreparation": {
+        "name": "Arbeitsplatz vorbereiten",
+        "description": "Startet Anwendungen, stellt Layouts wieder her und bereitet Ressourcen vor.",
+        "automation": "Autonom",
+        "frequency": "Routine"
+      },
+      "meetingNotes": {
+        "name": "Besprechungsnotizen",
+        "description": "Erfasst Kontext und erstellt strukturierte Notizen zur Freigabe.",
+        "automation": "Assistiert",
+        "frequency": "Termin"
+      },
+      "privacyReview": {
+        "name": "Privatsphäre-Check",
+        "description": "Hebt Fenster und Daten hervor, die vor dem Teilen verborgen werden sollten.",
+        "automation": "Manuell",
+        "frequency": "Bei Bedarf"
+      },
+      "policyGuardrails": {
+        "name": "Richtlinien-Schutz",
+        "description": "Wendet Unternehmensrichtlinien auf Automationen an und blockiert riskante Schritte.",
+        "automation": "Autonom",
+        "frequency": "Kontinuierlich"
+      },
+      "networkStatus": {
+        "name": "Netzwerkstatus",
+        "description": "Prüft Konnektivität, Proxy und meldet Ausfälle, die Automationen betreffen.",
+        "automation": "Manuell",
+        "frequency": "Bei Bedarf"
+      }
+    },
+    "playbook": {
+      "title": "Ablauf der Aktionen",
+      "description": "Jede Aktion folgt einem transparenten Zyklus, damit du mitverfolgen oder eingreifen kannst.",
+      "steps": {
+        "observe": {
+          "title": "Beobachten",
+          "description": "Signale aus Desktop-Aktivitäten, Telemetrie und Eingaben erfassen."
+        },
+        "plan": {
+          "title": "Planen",
+          "description": "Einen klaren Ablauf mit passenden Schutzmaßnahmen entwerfen."
+        },
+        "execute": {
+          "title": "Ausführen",
+          "description": "Schritte automatisieren oder assistieren und Ergebnisse zurückmelden."
+        }
+      }
+    }
+  },
+  "settings": {
+    "title": "LLM- und Erlebnis-Einstellungen",
+    "description": "Konfiguriere den OpenAI-kompatiblen Endpunkt und passe Enigma an deine Bedürfnisse an.",
+    "sections": {
+      "account": {
+        "title": "Kontoprofil",
+        "description": "Personalisierung, wie Enigma dich bei Automationen repräsentiert."
+      },
+      "llm": {
+        "title": "LLM-Konfiguration",
+        "description": "Steuere, wie Enigma sich mit deinem bevorzugten Anbieter verbindet."
+      },
+      "network": {
+        "title": "Netzwerk & Vertrauen",
+        "description": "Konfiguration von Konnektivität, Proxy und Zertifikaten."
+      },
+      "automation": {
+        "title": "Automatisierungsoberfläche",
+        "description": "Bestimme, wie Enigma Browser und Desktop automatisiert."
+      }
+    },
+    "fields": {
+      "apiBaseUrl": "API-Basis-URL",
+      "apiKey": "API-Schlüssel",
+      "model": "Modell",
+      "organization": "Organisation",
+      "language": "Bevorzugte Sprache",
+      "desktopCaptureEnabled": "Desktopaufzeichnung",
+      "activityLogging": "Aktivitätsprotokoll",
+      "displayName": "Anzeigename",
+      "avatarUrl": "Avatar-URL",
+      "preferredLLMVendor": "Bevorzugter LLM-Anbieter",
+      "requestTimeoutSeconds": "Timeout (Sekunden)",
+      "maxRetries": "Wiederholversuche",
+      "networkProxy": "Netzwerk-Proxy",
+      "automationBrowser": "Automatisierungsbrowser",
+      "browserProfilePath": "Profilpfad"
+    },
+    "hints": {
+      "apiBaseUrl": "Beispiel: https://api.openai.com/v1",
+      "apiKey": "Sicher auf diesem Gerät gespeichert",
+      "model": "Modellkennung, die dein Anbieter unterstützt",
+      "organization": "Optionaler Organisations-Header für OpenAI-APIs",
+      "language": "Sprache der Benutzeroberfläche",
+      "desktopCaptureEnabled": "Ermöglicht Zusammenfassungen des Bildschirminhalts",
+      "activityLogging": "Hält eine lokale Zeitleiste der Erkenntnisse vor",
+      "displayName": "Verwendet in Zusammenfassungen und Bestätigungen",
+      "avatarUrl": "Link zum Bild, das dein Konto repräsentiert",
+      "preferredLLMVendor": "Bestimmt Header und Standardwerte für kompatible APIs",
+      "requestTimeoutSeconds": "Erhöhe den Wert bei langsamen Antworten",
+      "maxRetries": "Anzahl der Versuche vor einer Fehlermeldung",
+      "networkProxy": "Proxy-URL für LLM-Verbindungen",
+      "allowUntrustedCertificates": "Selbstsignierte Zertifikate zulassen",
+      "automationBrowser": "Browser, den Enigma steuern soll",
+      "browserProfilePath": "Optionaler Profilpfad für persistente Sitzungen",
+      "backgroundAutomation": "Automationen im Hintergrund erlauben"
+    },
+    "toggles": {
+      "enabled": "Aktiv",
+      "disabled": "Inaktiv"
+    },
+    "prompts": {
+      "missingBaseUrl": "Gib eine Basis-URL ein, bevor du die Verbindung testest"
+    },
+    "options": {
+      "llmVendor": {
+        "openai": "OpenAI",
+        "azure": "Azure OpenAI",
+        "local": "Lokal/On-Prem"
+      },
+      "browser": {
+        "chromium": "Chromium",
+        "chrome": "Google Chrome",
+        "edge": "Microsoft Edge",
+        "firefox": "Mozilla Firefox"
+      }
+    }
+  }
+}

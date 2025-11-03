@@ -2,9 +2,11 @@ package llm
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -28,34 +30,87 @@ func Probe(ctx context.Context, cfg settings.Settings) (*ConnectionStatus, error
 		return &ConnectionStatus{Healthy: false, Message: "API base URL is required"}, nil
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(cfg.APIBaseURL, "/")+modelsEndpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
+	timeout := requestTimeout
+	if cfg.RequestTimeoutSeconds > 0 {
+		timeout = time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	}
 
-	if cfg.APIKey != "" {
-		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
-	}
-	if cfg.Organization != "" {
-		req.Header.Set("OpenAI-Organization", cfg.Organization)
-	}
+	var transport *http.Transport
+	if cfg.NetworkProxy != "" || cfg.AllowUntrustedCerts {
+		transport = &http.Transport{}
 
-	client := &http.Client{Timeout: requestTimeout}
+		if cfg.NetworkProxy != "" {
+			proxyURL, err := url.Parse(cfg.NetworkProxy)
+			if err != nil {
+				return &ConnectionStatus{Healthy: false, Message: fmt.Sprintf("invalid proxy url: %v", err)}, nil
+			}
+			transport.Proxy = http.ProxyURL(proxyURL)
+		}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return &ConnectionStatus{Healthy: false, Message: err.Error()}, nil
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		return &ConnectionStatus{Healthy: false, Message: fmt.Sprintf("llm server responded with status %d", resp.StatusCode)}, nil
+		if cfg.AllowUntrustedCerts {
+			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec
+		}
 	}
 
-	var responsePayload map[string]any
-	if err := json.NewDecoder(resp.Body).Decode(&responsePayload); err != nil {
-		return &ConnectionStatus{Healthy: true, Message: "Connected successfully, but failed to decode response"}, nil
+	attempts := cfg.MaxRetries
+	if attempts < 1 {
+		attempts = 1
 	}
 
-	return &ConnectionStatus{Healthy: true, Message: "Connection successful"}, nil
+	var lastStatus *ConnectionStatus
+
+	for attempt := 0; attempt < attempts; attempt++ {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(cfg.APIBaseURL, "/")+modelsEndpoint, nil)
+		if err != nil {
+			return nil, fmt.Errorf("create request: %w", err)
+		}
+
+		if cfg.APIKey != "" {
+			req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		}
+		if cfg.Organization != "" {
+			req.Header.Set("OpenAI-Organization", cfg.Organization)
+		}
+		if cfg.PreferredLLMVendor != "" {
+			req.Header.Set("X-LLM-Vendor", cfg.PreferredLLMVendor)
+		}
+
+		client := &http.Client{Timeout: timeout}
+		if transport != nil {
+			client.Transport = transport
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			lastStatus = &ConnectionStatus{Healthy: false, Message: err.Error()}
+			continue
+		}
+
+		func() {
+			defer resp.Body.Close()
+
+			if resp.StatusCode >= http.StatusBadRequest {
+				lastStatus = &ConnectionStatus{Healthy: false, Message: fmt.Sprintf("llm server responded with status %d", resp.StatusCode)}
+				return
+			}
+
+			var responsePayload map[string]any
+			if err := json.NewDecoder(resp.Body).Decode(&responsePayload); err != nil {
+				lastStatus = &ConnectionStatus{Healthy: true, Message: "Connected successfully, but failed to decode response"}
+				return
+			}
+
+			lastStatus = &ConnectionStatus{Healthy: true, Message: "Connection successful"}
+		}()
+
+		if lastStatus != nil && lastStatus.Healthy {
+			return lastStatus, nil
+		}
+	}
+
+	if lastStatus == nil {
+		lastStatus = &ConnectionStatus{Healthy: false, Message: "connection attempt did not return a status"}
+	}
+
+	return lastStatus, nil
 }
