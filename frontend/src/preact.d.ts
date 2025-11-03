@@ -2,6 +2,10 @@ import { JSX as PreactJSX } from 'preact';
 
 declare global {
   namespace JSX {
+    type Element = PreactJSX.Element;
+    interface ElementClass extends PreactJSX.ElementClass {}
+    interface ElementAttributesProperty extends PreactJSX.ElementAttributesProperty {}
+    interface ElementChildrenAttribute extends PreactJSX.ElementChildrenAttribute {}
     interface IntrinsicElements extends PreactJSX.IntrinsicElements {}
   }
 }
