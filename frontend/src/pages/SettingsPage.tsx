@@ -86,20 +86,39 @@ export const SettingsPage = () => {
     void fetchSettings();
   }, [i18n]);
 
-  const handleChange = (key: keyof SettingsPayload) => (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | SelectChangeEvent<string>
-  ) => {
-    const target = event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
+  const updateSetting = <K extends keyof SettingsPayload>(key: K, value: SettingsPayload[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleInputChange = (key: keyof SettingsPayload) => (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const target = event.currentTarget;
+    const value =
+      target.type === 'checkbox'
+        ? ((target as HTMLInputElement).checked as SettingsPayload[typeof key])
+        : ((target.value as unknown) as SettingsPayload[typeof key]);
+    updateSetting(key, value);
     if (key === 'language') {
       void i18n.changeLanguage(String(value));
     }
   };
 
+  const handleSelectChange = (key: keyof SettingsPayload) => (event: SelectChangeEvent<string>) => {
+    const { value } = event.target as typeof event.target & { value: string };
+    updateSetting(key, value as SettingsPayload[typeof key]);
+    if (key === 'language') {
+      void i18n.changeLanguage(value);
+    }
+  };
+
   const handleNumberChange = (key: keyof SettingsPayload) => (event: ChangeEvent<HTMLInputElement>) => {
-    const value = Number(event.target.value);
-    setSettings((prev) => ({ ...prev, [key]: Number.isNaN(value) ? prev[key] : value }));
+    const { value } = event.currentTarget;
+    const numericValue = Number(value);
+    setSettings((prev) => ({
+      ...prev,
+      [key]: (Number.isNaN(numericValue) ? prev[key] : numericValue) as SettingsPayload[typeof key]
+    }));
   };
 
   const handleAvatarUpload = () => {
@@ -107,7 +126,7 @@ export const SettingsPage = () => {
   };
 
   const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.target;
+    const input = event.currentTarget;
     const file = input.files?.[0];
     if (!file) {
       return;
@@ -167,12 +186,6 @@ export const SettingsPage = () => {
     );
   }, [connectionStatus]);
 
-  const handleLanguageChange = (event: SelectChangeEvent<string>) => {
-    const value = event.target.value;
-    setSettings((prev) => ({ ...prev, language: value }));
-    void i18n.changeLanguage(value);
-  };
-
   return (
     <Card>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -230,7 +243,7 @@ export const SettingsPage = () => {
           <TextField
             label={t('settings.fields.displayName')}
             value={settings.displayName ?? ''}
-            onChange={handleChange('displayName')}
+            onChange={handleInputChange('displayName')}
             helperText={t('settings.hints.displayName')}
             disabled={loading}
             fullWidth
@@ -238,7 +251,7 @@ export const SettingsPage = () => {
           <TextField
             label={t('settings.fields.accountEmail')}
             value={settings.accountEmail ?? ''}
-            onChange={handleChange('accountEmail')}
+            onChange={handleInputChange('accountEmail')}
             helperText={t('settings.hints.accountEmail')}
             disabled={loading}
             fullWidth
@@ -247,7 +260,7 @@ export const SettingsPage = () => {
           <TextField
             label={t('settings.fields.avatarUrl')}
             value={settings.avatarUrl ?? ''}
-            onChange={handleChange('avatarUrl')}
+            onChange={handleInputChange('avatarUrl')}
             helperText={t('settings.hints.avatarUrl')}
             disabled={loading}
             fullWidth
@@ -275,7 +288,7 @@ export const SettingsPage = () => {
             <TextField
               label={t('settings.fields.apiBaseUrl')}
               value={settings.apiBaseUrl}
-              onChange={handleChange('apiBaseUrl')}
+              onChange={handleInputChange('apiBaseUrl')}
               helperText={t('settings.hints.apiBaseUrl')}
               disabled={loading}
               fullWidth
@@ -284,7 +297,7 @@ export const SettingsPage = () => {
               label={t('settings.fields.apiKey')}
               value={settings.apiKey}
               type="password"
-              onChange={handleChange('apiKey')}
+              onChange={handleInputChange('apiKey')}
               helperText={t('settings.hints.apiKey')}
               disabled={loading}
               fullWidth
@@ -292,7 +305,7 @@ export const SettingsPage = () => {
             <TextField
               label={t('settings.fields.model')}
               value={settings.model}
-              onChange={handleChange('model')}
+              onChange={handleInputChange('model')}
               helperText={t('settings.hints.model')}
               disabled={loading}
               fullWidth
@@ -303,7 +316,7 @@ export const SettingsPage = () => {
                 labelId="preferred-llm-label"
                 label={t('settings.fields.preferredLLMVendor')}
                 value={settings.preferredLLMVendor ?? 'openai'}
-                onChange={handleChange('preferredLLMVendor')}
+                onChange={handleSelectChange('preferredLLMVendor')}
                 disabled={loading}
               >
                 {llmVendors.map((vendor) => (
@@ -315,7 +328,7 @@ export const SettingsPage = () => {
             <TextField
               label={t('settings.fields.organization')}
               value={settings.organization ?? ''}
-              onChange={handleChange('organization')}
+              onChange={handleInputChange('organization')}
               helperText={t('settings.hints.organization')}
               disabled={loading}
               fullWidth
@@ -348,7 +361,7 @@ export const SettingsPage = () => {
                 labelId="language-label"
                 label={t('settings.fields.language')}
                 value={settings.language}
-                onChange={handleLanguageChange}
+                onChange={handleSelectChange('language')}
                 disabled={loading}
               >
                 {languageOptions.map((code) => (
@@ -369,7 +382,7 @@ export const SettingsPage = () => {
             <TextField
               label={t('settings.fields.networkProxy')}
               value={settings.networkProxy ?? ''}
-              onChange={handleChange('networkProxy')}
+              onChange={handleInputChange('networkProxy')}
               helperText={t('settings.hints.networkProxy')}
               disabled={loading}
               fullWidth
@@ -378,7 +391,7 @@ export const SettingsPage = () => {
               control={(
                 <Switch
                   checked={settings.allowUntrustedCertificates ?? false}
-                  onChange={handleChange('allowUntrustedCertificates')}
+                  onChange={handleInputChange('allowUntrustedCertificates')}
                   color="primary"
                 />
               )}
@@ -398,7 +411,7 @@ export const SettingsPage = () => {
               control={
                 <Switch
                   checked={settings.desktopCaptureEnabled}
-                  onChange={handleChange('desktopCaptureEnabled')}
+                  onChange={handleInputChange('desktopCaptureEnabled')}
                   color="primary"
                 />
               }
@@ -410,7 +423,7 @@ export const SettingsPage = () => {
               control={
                 <Switch
                   checked={settings.activityLogging}
-                  onChange={handleChange('activityLogging')}
+                  onChange={handleInputChange('activityLogging')}
                   color="primary"
                 />
               }
@@ -422,7 +435,7 @@ export const SettingsPage = () => {
               control={
                 <Switch
                   checked={settings.backgroundAutomation}
-                  onChange={handleChange('backgroundAutomation')}
+                  onChange={handleInputChange('backgroundAutomation')}
                   color="primary"
                 />
               }
@@ -436,7 +449,7 @@ export const SettingsPage = () => {
                 labelId="automation-browser-label"
                 label={t('settings.fields.automationBrowser')}
                 value={settings.automationBrowser}
-                onChange={handleChange('automationBrowser')}
+                onChange={handleSelectChange('automationBrowser')}
                 disabled={loading}
               >
                 {browserOptions.map((option) => (
@@ -448,7 +461,7 @@ export const SettingsPage = () => {
             <TextField
               label={t('settings.fields.browserProfilePath')}
               value={settings.browserProfilePath ?? ''}
-              onChange={handleChange('browserProfilePath')}
+              onChange={handleInputChange('browserProfilePath')}
               helperText={t('settings.hints.browserProfilePath')}
               disabled={loading}
               fullWidth

@@ -50,15 +50,15 @@ export const LoginDialog = ({ open, onClose, onSuccess }: LoginDialogProps) => {
   };
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setUsername(event.target.value);
+    setUsername(event.currentTarget.value);
   };
 
   const handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
+    setEmail(event.currentTarget.value);
   };
 
   const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setPassword(event.target.value);
+    setPassword(event.currentTarget.value);
   };
 
   return (
