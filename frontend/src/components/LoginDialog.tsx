@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import type { ChangeEvent, FormEvent } from 'react';
 
 import { useAuth } from '../context/AuthContext';
 
@@ -20,7 +21,7 @@ export const LoginDialog = ({ open, onClose, onSuccess }: LoginDialogProps) => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const handleSubmit = async (event: SubmitEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLDivElement>) => {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -48,6 +49,18 @@ export const LoginDialog = ({ open, onClose, onSuccess }: LoginDialogProps) => {
     onClose();
   };
 
+  const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value);
+  };
+
+  const handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value);
+  };
+
+  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
+  };
+
   return (
     <Dialog open={open} onClose={handleCancel} fullWidth maxWidth="sm" component="form" onSubmit={handleSubmit}>
       <DialogTitle>{t('auth.loginTitle')}</DialogTitle>
@@ -57,19 +70,19 @@ export const LoginDialog = ({ open, onClose, onSuccess }: LoginDialogProps) => {
             autoFocus
             label={t('auth.fields.username')}
             value={username}
-            onChange={(event) => setUsername((event.target as HTMLInputElement).value)}
+            onChange={handleUsernameChange}
             required
           />
           <TextField
             label={t('auth.fields.email')}
             value={email}
-            onChange={(event) => setEmail((event.target as HTMLInputElement).value)}
+            onChange={handleEmailChange}
             type="email"
           />
           <TextField
             label={t('auth.fields.password')}
             value={password}
-            onChange={(event) => setPassword((event.target as HTMLInputElement).value)}
+            onChange={handlePasswordChange}
             type="password"
             required
           />

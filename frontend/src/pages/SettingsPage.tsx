@@ -32,6 +32,7 @@ import {
   TestLLMConnection
 } from '../../wailsjs/go/main/App';
 import type { ConnectionStatus, SettingsPayload } from '../types';
+import type { ChangeEvent } from 'react';
 
 const languageOptions = ['en', 'es', 'de'] as const;
 const llmVendors = ['openai', 'azure', 'local'] as const;
@@ -105,8 +106,8 @@ export const SettingsPage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleAvatarFileChange = (event: Event) => {
-    const input = event.target as HTMLInputElement;
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.target;
     const file = input.files?.[0];
     if (!file) {
       return;
@@ -115,7 +116,7 @@ export const SettingsPage = () => {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        setSettings((prev) => ({ ...prev, avatarData: reader.result }));
+        setSettings((prev) => ({ ...prev, avatarData: reader.result as string }));
       }
     };
     reader.readAsDataURL(file);
