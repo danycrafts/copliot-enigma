@@ -13,7 +13,7 @@ import {
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 
-import { GetRecentActivity } from '../wailsjs/go/main/App';
+import { GetRecentActivity } from '../../wailsjs/go/main/App';
 import type { ActivityEvent } from '../types';
 
 export const ActivityPage = () => {
