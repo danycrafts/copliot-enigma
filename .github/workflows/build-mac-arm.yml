@@ -10,12 +10,12 @@ on:
       chromium_version:
         description: 'Ungoogled Chromium version'
         required: false
-        default: '129.0.6668.58-1.1'
+        default: '142.0.7444.59-1.1'
         type: string
       chromedriver_version:
         description: 'ChromeDriver version'
         required: false
-        default: '129.0.6668.70'
+        default: '142.0.7444.61'
         type: string
 
 env:
@@ -55,22 +55,24 @@ jobs:
       - name: Download Ungoogled Chromium
         if: steps.cache-chromium.outputs.cache-hit != 'true'
         run: |
-          curl -L -o ungoogled-chromium.dmg ${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/ungoogled-chromium_${{ inputs.chromium_version }}_arm64-macos.dmg
+          curl -L -o ungoogled-chromium.dmg \
+            ${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/ungoogled-chromium_${{ inputs.chromium_version }}_arm64-macos.dmg
           mkdir -p ${{ env.OUTPUT_DIR }}
           hdiutil attach ungoogled-chromium.dmg
-          
+
           # Dynamically get the volume name
           VOLUME_NAME=$(ls /Volumes | grep -i "Chromium")
           cp -R /Volumes/"$VOLUME_NAME"/Chromium.app ${{ env.OUTPUT_DIR }}/
-          
+
           hdiutil detach /Volumes/"$VOLUME_NAME"
-          
+
           # Remove code signatures from Chromium.app to avoid PyInstaller codesign issues
           echo "Removing code signatures from Chromium.app..."
           codesign --remove-signature ${{ env.OUTPUT_DIR }}/Chromium.app/Contents/Frameworks/*.framework 2>/dev/null || true
           codesign --remove-signature ${{ env.OUTPUT_DIR }}/Chromium.app 2>/dev/null || true
-          
+
           ls -la ${{ env.OUTPUT_DIR }}
+          rm -f ungoogled-chromium.dmg
 
       - name: Cache ChromeDriver 
         id: cache-chromedriver
@@ -82,7 +84,8 @@ jobs:
       - name: Download ChromeDriver
         if: steps.cache-chromedriver.outputs.cache-hit != 'true'
         run: |
-          curl -L -o chromedriver.zip ${{ env.CHROMEDRIVER_BASE_URL }}/${{ inputs.chromedriver_version }}/mac-arm64/chromedriver-mac-arm64.zip
+          curl -L -o chromedriver.zip \
+            ${{ env.CHROMEDRIVER_BASE_URL }}/${{ inputs.chromedriver_version }}/mac-arm64/chromedriver-mac-arm64.zip
           unzip chromedriver.zip
           mv chromedriver-mac-arm64/chromedriver ${{ env.OUTPUT_DIR }}/
           rm -rf chromedriver-mac-arm64 chromedriver.zip
@@ -111,8 +114,12 @@ jobs:
           export PYINSTALLER_OSX_SPLIT=0
           pipenv run pyinstaller main.spec
 
+      - name: Archive build output
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent dist/copliot_enigma_macos_arm64 dist/copliot_enigma_macos_arm64.zip
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macOS ARM Executable
-          path: dist/copliot_enigma_macos_arm64
+          path: dist/copliot_enigma_macos_arm64.zip

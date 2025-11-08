@@ -1,8 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import glob
 import os
 import platform
 import sys
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_submodules
 
 block_cipher = None
@@ -11,18 +14,71 @@ current_platform = platform.system().lower()
 machine = platform.machine().lower()
 architecture = 'arm64' if machine in ('arm64', 'aarch64') else ('x64' if sys.maxsize > 2**32 else 'x86')
 
+
+def _find_first_match(patterns: list[str], *, require_dir: bool) -> str:
+    """Return the first existing path that matches any of the provided glob patterns."""
+
+    for pattern in patterns:
+        matches = sorted(glob.glob(pattern))
+        for match in matches:
+            if require_dir and os.path.isdir(match):
+                return match
+            if not require_dir and os.path.isfile(match):
+                return match
+    raise FileNotFoundError(f"Unable to locate resource using patterns: {patterns}")
+
+
+base_path = Path('ungoogled_chromium')
+
 if current_platform.startswith('win'):
     exe_name = f'copliot_enigma_windows_{architecture}.exe'
-    chrome_portable_path = os.path.join('ungoogled_chromium', 'ungoogled-chromium_129.0.6668.58-1.1_windows')
-    chromedriver_source = os.path.join('ungoogled_chromium', 'chromedriver', 'chromedriver-win64', 'chromedriver.exe')
+    chrome_portable_path = _find_first_match(
+        [
+            str(base_path / 'ungoogled-chromium_*_windows*'),
+            str(base_path / 'ungoogled-chromium_*_windows'),
+        ],
+        require_dir=True,
+    )
+    chromedriver_source = _find_first_match(
+        [
+            str(base_path / 'chromedriver.exe'),
+            str(base_path / 'chromedriver' / 'chromedriver.exe'),
+            str(base_path / 'chromedriver' / 'chromedriver-win64' / 'chromedriver.exe'),
+        ],
+        require_dir=False,
+    )
 elif current_platform == 'darwin':
     exe_name = f'copliot_enigma_macos_{architecture}'
-    chrome_portable_path = os.path.join('ungoogled_chromium', 'Chromium.app')
-    chromedriver_source = os.path.join('ungoogled_chromium', 'chromedriver')
+    chrome_portable_path = _find_first_match(
+        [
+            str(base_path / 'Chromium.app'),
+        ],
+        require_dir=True,
+    )
+    chromedriver_source = _find_first_match(
+        [
+            str(base_path / 'chromedriver'),
+            str(base_path / 'chromedriver' / 'chromedriver'),
+        ],
+        require_dir=False,
+    )
 else:  # Linux
     exe_name = 'copliot_enigma_linux'
-    chrome_portable_path = os.path.join('ungoogled_chromium', 'ungoogled-chromium_129.0.6668.58-1_linux')
-    chromedriver_source = os.path.join('ungoogled_chromium', 'ungoogled-chromium_129.0.6668.58-1_linux', 'chromedriver')
+    chrome_portable_path = _find_first_match(
+        [
+            str(base_path / 'ungoogled-chromium_*_linux*'),
+            str(base_path / 'ungoogled-chromium_*_linux'),
+        ],
+        require_dir=True,
+    )
+    chromedriver_source = _find_first_match(
+        [
+            str(base_path / 'chromedriver'),
+            str(base_path / 'chromedriver' / 'chromedriver'),
+            str(base_path / 'ungoogled-chromium_*_linux*' / 'chromedriver'),
+        ],
+        require_dir=False,
+    )
 
 binaries = [(chromedriver_source, 'chromedriver')]
 
