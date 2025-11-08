@@ -82,9 +82,35 @@ jobs:
           Remove-Item $chromedriverTemp -Recurse -Force
           Remove-Item ${{ env.CHROMEDRIVER_ARCHIVE_NAME }} -Force
       
-      - name: Debug browser bundle
-        shell: pwsh
-        run: python scripts/debug_browser_binaries.py --search-root "${{ env.OUTPUT_DIR }}"
+      - name: Debug - Check Chromium and ChromeDriver
+        run: |
+          $workspace = "$env:GITHUB_WORKSPACE"
+          $chromiumDir = Get-ChildItem -Path (Join-Path $workspace ${{ env.OUTPUT_DIR }}) -Directory -Filter "ungoogled-chromium_*_windows*" | Select-Object -First 1
+
+          Write-Host "Checking Chromium executable:"
+          if ($chromiumDir) {
+            $chromePath = Join-Path $chromiumDir.FullName 'chrome.exe'
+            if (Test-Path $chromePath) {
+              $chromeVersion = (Get-Item $chromePath).VersionInfo.FileVersion
+              Write-Host "Chromium version: $chromeVersion"
+            } else {
+              Write-Host "Chromium executable not found"
+            }
+          } else {
+            Write-Host "Chromium directory not found"
+          }
+
+          Write-Host "Checking ChromeDriver executable:"
+          $chromedriverPath = Join-Path $workspace '${{ env.OUTPUT_DIR }}' 'chromedriver.exe'
+          if (Test-Path $chromedriverPath) {
+            $chromeDriverVersion = & $chromedriverPath --version
+            Write-Host "ChromeDriver version: $chromeDriverVersion"
+          } else {
+            Write-Host "ChromeDriver executable not found"
+          }
+
+          Write-Host "Listing contents of Chromium directory:"
+          Get-ChildItem -Path (Join-Path $workspace ${{ env.OUTPUT_DIR }}) -Recurse | Select-Object FullName, Length
 
       - name: Package the app using PyInstaller
         run: pipenv run pyinstaller main.spec
