@@ -36,7 +36,7 @@ jobs:
     with:
       python_version: '3.10'
       chromium_version: '129.0.6668.58-1.1'
-      chromedriver_version: '131.0.6724.0'
+      chromedriver_version: '142.0.7444.59-1.1'
 
   build-docker:
     name: Docker
