@@ -40,7 +40,9 @@ jobs:
           python-version: ${{ inputs.python_version }}
 
       - name: Install Pipenv
-        run: pip install --user pipenv
+        run: |
+          pip install --user pipenv
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Python Dependencies
         run: |
