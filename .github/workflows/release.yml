@@ -1,13 +1,10 @@
 name: Release
+
 on:
   workflow_dispatch:
   push:
     tags:
       - 'v*'
-
-permissions:
-  contents: write
-  packages: write
 
 jobs:
   build-linux:
@@ -16,7 +13,7 @@ jobs:
     with:
       python_version: '3.10'
       chromium_version: '129.0.6668.58-1'
-  
+
   # build-macos:
   #   name: macOS x64
   #   uses: ./.github/workflows/build-macos.yml
@@ -24,7 +21,7 @@ jobs:
   #     python_version: '3.10'
   #     chromium_version: '129.0.6668.58-1.1'
   #     chromedriver_version: '131.0.6724.0'
-  
+
   build-macos-arm:
     name: macOS ARM
     uses: ./.github/workflows/build-mac-arm.yml
@@ -32,7 +29,7 @@ jobs:
       python_version: '3.10'
       chromium_version: '129.0.6668.58-1.1'
       chromedriver_version: '131.0.6724.0'
-  
+
   build-windows:
     name: Windows x64
     uses: ./.github/workflows/build-windows.yml
@@ -40,57 +37,60 @@ jobs:
       python_version: '3.10'
       chromium_version: '129.0.6668.58-1.1'
       chromedriver_version: '131.0.6724.0'
-  
+
   build-docker:
     name: Docker
     uses: ./.github/workflows/build-docker.yml
     with:
       repo: 'ghcr.io/${{ github.repository }}'
       context_path: '.'
-      image: 'scrapegoat'
+      image: 'copilot-enigma'
       tag: ${{ github.ref_name }}
-      dockerfile_path: './GoatFile'
-    secrets: inherit
-  
+      dockerfile_path: './Containerfile'
+    secrets:
+      PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
   create-release:
     needs: [build-linux, build-macos-arm, build-windows, build-docker]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
           name: Linux Executable
           path: artifacts
-      
-      - name: Download macOS ARM artifact
+
+      - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
-          name: macOS ARM Executable
+          name: macOS Executable
           path: artifacts
-      
+
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: Windows Executable
           path: artifacts
-      
+
+      - name: Download macOS ARM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macOS ARM Executable
+          path: artifacts
+
       - name: Read release message
         id: release_message
-        run: |
-          {
-            echo 'message<<EOF'
-            cat RELEASENOTES.md
-            echo EOF
-          } >> $GITHUB_OUTPUT
-      
+        run: echo "message=$(cat RELEASENOTES.md)" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/scrapegoat_linux
+            artifacts/scrapegoat_macos_x64
             artifacts/scrapegoat_macos_arm
             artifacts/scrapegoat_windows_x64.exe
           body: ${{ steps.release_message.outputs.message }}
