@@ -1,6 +1,8 @@
 """Abstractions around Selenium browser automation used by the desktop app."""
 from __future__ import annotations
 
+import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -118,7 +120,10 @@ class BrowserClient:
         service = self._create_chrome_service(options)
 
         try:
-            self.driver = webdriver.Chrome(service=service, options=options)
+            if service is not None:
+                self.driver = webdriver.Chrome(service=service, options=options)
+            else:
+                self.driver = webdriver.Chrome(options=options)
             self.wait = WebDriverWait(self.driver, self.wait_timeout)
             self.driver.request_interceptor = self._intercept_request
             self.request_interceptor = self._intercept_request
@@ -171,8 +176,23 @@ class BrowserClient:
         logger.debug(f"Chrome configured with options: {options.arguments}")
         return options
 
-    def _create_chrome_service(self, options: Options) -> Service:
-        self._binary_paths = self._binary_paths or self._resolve_binary_paths()
+    def _create_chrome_service(self, options: Options) -> Optional[Service]:
+        try:
+            self._binary_paths = self._binary_paths or self._resolve_binary_paths()
+        except FileNotFoundError:
+            logger.warning(
+                "Packaged Chromium binaries were not found; attempting to use system installs."
+            )
+            browser_executable = self._discover_system_browser()
+            if browser_executable:
+                options.binary_location = browser_executable
+                logger.debug(f"Using system Chromium binary at {browser_executable}")
+            else:
+                logger.warning(
+                    "No system Chromium binary detected. Selenium Manager will attempt to locate one."
+                )
+            return None
+
         options.binary_location = self._binary_paths.browser_executable
         logger.debug(f"Using Chromium binary at {options.binary_location}")
         logger.debug(
@@ -200,6 +220,12 @@ class BrowserClient:
         driver_path = self._find_binary(search_roots, [driver_name])
 
         if browser_path is None or driver_path is None:
+            fallback_paths = self._resolve_system_binary_paths()
+            if fallback_paths:
+                logger.warning(
+                    "Packaged browser assets were not found; using system-installed binaries instead."
+                )
+                return fallback_paths
             raise FileNotFoundError(
                 "Unable to locate packaged Chromium or ChromeDriver binaries."
             )
@@ -208,6 +234,17 @@ class BrowserClient:
             browser_executable=str(browser_path),
             driver_executable=str(driver_path),
         )
+
+    def _resolve_system_binary_paths(self) -> Optional[BrowserBinaryPaths]:
+        browser_executable = self._discover_system_browser()
+        driver_executable = self._discover_system_driver()
+
+        if browser_executable and driver_executable:
+            return BrowserBinaryPaths(
+                browser_executable=browser_executable,
+                driver_executable=driver_executable,
+            )
+        return None
 
     def _candidate_roots(self) -> List[Path]:
         potential_roots = [
@@ -231,6 +268,49 @@ class BrowserClient:
                 for candidate in candidates:
                     if candidate.is_file() or candidate.is_symlink():
                         return candidate
+        return None
+
+    @staticmethod
+    def _discover_system_browser() -> Optional[str]:
+        env_variables = [
+            "CHROME_BINARY",
+            "GOOGLE_CHROME_BIN",
+            "GOOGLE_CHROME_SHIM",
+        ]
+        for variable in env_variables:
+            candidate = os.environ.get(variable)
+            if candidate and Path(candidate).exists():
+                return str(Path(candidate))
+
+        browser_candidates = [
+            "google-chrome",
+            "google-chrome-stable",
+            "chromium-browser",
+            "chromium",
+            "chrome",
+        ]
+        for candidate in browser_candidates:
+            resolved = shutil.which(candidate)
+            if resolved:
+                return resolved
+        return None
+
+    @staticmethod
+    def _discover_system_driver() -> Optional[str]:
+        env_variables = [
+            "CHROMEDRIVER",
+            "CHROMEDRIVER_PATH",
+        ]
+        for variable in env_variables:
+            candidate = os.environ.get(variable)
+            if candidate and Path(candidate).exists():
+                return str(Path(candidate))
+
+        driver_candidates = ["chromedriver", "chromedriver.exe"]
+        for candidate in driver_candidates:
+            resolved = shutil.which(candidate)
+            if resolved:
+                return resolved
         return None
 
     # ------------------------------------------------------------------
