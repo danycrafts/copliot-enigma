@@ -23,7 +23,7 @@ env:
   CHROMIUM_BASE_URL: 'https://github.com/ungoogled-software/ungoogled-chromium-windows/releases/download'
   CHROMEDRIVER_BASE_URL: 'https://storage.googleapis.com/chrome-for-testing-public'
   OUTPUT_DIR: 'ungoogled_chromium'
-
+  
 jobs:
   build-windows:
     name: Bundle Executable
@@ -54,7 +54,7 @@ jobs:
       - name: Download Ungoogled Chromium
         if: steps.cache-chromium.outputs.cache-hit != 'true'
         run: |
-          $chromiumFolderName = "ungoogled-chromium_${{ inputs.chromium_version }}_windows"
+          $chromiumFolderName = "ungoogled-chromium_${{ inputs.chromium_version }}_windows_x64"
           $archivePath = "${chromiumFolderName}.zip"
           Invoke-WebRequest -Uri "${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/${archivePath}" -OutFile $archivePath
           New-Item -Path ${{ env.OUTPUT_DIR }} -ItemType Directory -Force | Out-Null
