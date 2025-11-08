@@ -27,7 +27,7 @@ env:
 jobs:
   build-macos:
     name: Bundle Executable
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -86,23 +86,8 @@ jobs:
           mv chromedriver-mac-x64/chromedriver ${{ env.OUTPUT_DIR }}/
           rm -rf chromedriver-mac-x64 chromedriver.zip
 
-      - name: Debug - Check Chromium and ChromeDriver
-        run: |
-          echo "Checking Chromium executable:"
-          if [ -d "${{ env.OUTPUT_DIR }}/Chromium.app" ]; then
-            CHROME_VERSION=$(${{ env.OUTPUT_DIR }}/Chromium.app/Contents/MacOS/Chromium --version)
-            echo "Chromium version: $CHROME_VERSION"
-          else
-            echo "Chromium.app not found"
-          fi
-
-          echo "Checking ChromeDriver executable:"
-          if [ -f "${{ env.OUTPUT_DIR }}/chromedriver" ]; then
-            CHROMEDRIVER_VERSION=$(${{ env.OUTPUT_DIR }}/chromedriver --version)
-            echo "ChromeDriver version: $CHROMEDRIVER_VERSION"
-          else
-            echo "ChromeDriver executable not found"
-          fi
+      - name: Debug browser bundle
+        run: python3 scripts/debug_browser_binaries.py --search-root "${{ env.OUTPUT_DIR }}"
 
       - name: Package the app using PyInstaller
         run: pipenv run pyinstaller main.spec

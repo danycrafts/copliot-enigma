@@ -1,151 +1,257 @@
-from utils.logger import Logger
+"""Entry point for the ScrapeGoat desktop application."""
+from __future__ import annotations
+
 import tkinter as tk
+from dataclasses import dataclass, field
+from typing import List
+from urllib.parse import urlparse, urlunparse
+
 import ttkbootstrap as ttk
-from driver.selenium import BrowserClient
-from utils.helpers import calculate_max_browsers_or_tabs
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from tkinter import messagebox
-import time
 
-def main():
-    logger = Logger(log_file="app.log")
-    client = BrowserClient()
+from driver.selenium import BrowserClient
+from utils.diagnostics import DiagnosticsService
+from utils.logger import Logger
 
-    # Initialize the main application window
-    root = create_main_window()
-    
-    # Create a notebook for tabs
-    notebook = create_notebook(root)
 
-    # Create tabs
-    tab1, tab2, tab3 = create_tabs(notebook)
+@dataclass
+class ActivityHistory:
+    """Keeps the browsing history displayed in the activity screen."""
 
-    # Initialize the Selenium driver and perform initial actions
-    initialize_browser(client)
+    items: List[str] = field(default_factory=list)
+    max_items: int = 10
 
-    # Display system information
-    display_system_info(tab1, logger)
+    def add(self, url: str) -> None:
+        if url in self.items:
+            self.items.remove(url)
+        self.items.insert(0, url)
+        del self.items[self.max_items :]
 
-    # Create Chrome test button in tab1
-    create_chrome_test_button(tab1, client)
 
-    # Create time display in tab2
-    create_time_display(tab2)
+class ScrapeGoatApp:
+    """Main application controller coordinating UI and browser automation."""
 
-    # Create a simple form in tab3
-    create_form(tab3)
+    def __init__(self) -> None:
+        self.logger = Logger(log_file="app.log")
+        self.browser_client = BrowserClient()
+        self.diagnostics_service = DiagnosticsService(self.browser_client)
 
-    # Ensure the browser is closed when the application exits
-    root.protocol("WM_DELETE_WINDOW", lambda: [client.close_driver(), root.destroy()])
+        self.root = tk.Tk()
+        self.root.title("ScrapeGoat Browser")
+        self.root.geometry("1260x915")
+        self.root.resizable(False, False)
 
-    root.mainloop()
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(expand=True, fill="both", padx=10, pady=10)
 
-def create_main_window():
-    root = tk.Tk()
-    root.title("ScrapeGoat Tool")
-    root.geometry("1260x915")
-    root.resizable(False, False)
-    return root
+        self.activity_screen = ActivityScreen(
+            master=self.notebook,
+            browser_client=self.browser_client,
+            logger=self.logger,
+        )
+        self.settings_screen = SettingsScreen(
+            master=self.notebook,
+            diagnostics_service=self.diagnostics_service,
+            logger=self.logger,
+        )
 
-def create_notebook(root):
-    notebook = ttk.Notebook(root)
-    notebook.pack(expand=True, fill="both", padx=10, pady=10)
-    return notebook
+        self.notebook.add(self.activity_screen, text="Activity")
+        self.notebook.add(self.settings_screen, text="Settings")
 
-def create_tabs(notebook):
-    tab1 = ttk.Frame(notebook)
-    tab2 = ttk.Frame(notebook)
-    tab3 = ttk.Frame(notebook)
+        self.root.protocol("WM_DELETE_WINDOW", self._shutdown)
+        self.root.after(0, self._initialise_browser)
 
-    notebook.add(tab1, text="Tab 1")
-    notebook.add(tab2, text="Tab 2")
-    notebook.add(tab3, text="Tab 3")
-    
-    return tab1, tab2, tab3
+    def _initialise_browser(self) -> None:
+        try:
+            self.browser_client.ensure_driver()
+            self.settings_screen.refresh()
+        except Exception as error:  # pylint: disable=broad-except
+            self.logger.error(f"Failed to initialise browser: {error}")
+            messagebox.showerror(
+                "Initialisation error",
+                "The embedded browser could not be initialised. Please check the logs.",
+            )
 
-def initialize_browser(client):
-    client.initialize_driver()
-    
-def display_system_info(tab1, logger):
-    results = calculate_max_browsers_or_tabs(browser="chrome")
-    info_frame = ttk.Frame(tab1)
-    info_frame.pack(pady=10, padx=10, fill="both", expand=True)
+    def _shutdown(self) -> None:
+        self.browser_client.close_driver()
+        self.root.destroy()
 
-    ttk.Label(info_frame, text="System Information", font=("TkDefaultFont", 12, "bold")).pack(pady=(0, 10))
+    def run(self) -> None:
+        self.root.mainloop()
 
-    # Create a table to display system information
-    table = ttk.Treeview(info_frame, columns=("Property", "Value"), show="headings", height=6)
-    table.heading("Property", text="Property")
-    table.heading("Value", text="Value")
-    table.column("Property", width=150, anchor="w")
-    table.column("Value", width=350, anchor="w")
 
-    # Insert system info into the table
-    for key, value in results['system_info'].items():
-        table.insert("", "end", values=(key.capitalize(), value))
+class ActivityScreen(ttk.Frame):
+    """Activity screen where users can launch the embedded browser."""
 
-    table.pack(pady=5)
+    def __init__(self, master, browser_client: BrowserClient, logger: Logger):
+        super().__init__(master)
+        self.browser_client = browser_client
+        self.logger = logger
+        self.history = ActivityHistory()
 
-    memory_usage_label = ttk.Label(info_frame, text=f"Estimated memory usage per Chrome browser/tab: {results['avg_memory_per_browser_mb']:.2f} MB")
-    memory_usage_label.pack(anchor="w", pady=2)
+        self.url_var = tk.StringVar()
+        self.status_var = tk.StringVar(
+            value="Paste a URL and click 'Open in Browser' to start browsing."
+        )
 
-    ram_browsers_label = ttk.Label(info_frame, text=f"Max browsers by available RAM: {results['max_browsers_by_ram']}")
-    ram_browsers_label.pack(anchor="w", pady=2)
+        self._build_ui()
 
-    cpu_browsers_label = ttk.Label(info_frame, text=f"Max browsers by CPU cores: {results['max_browsers_by_cpu']}")
-    cpu_browsers_label.pack(anchor="w", pady=2)
+    def _build_ui(self) -> None:
+        ttk.Label(self, text="Open a web page", font=("TkDefaultFont", 12, "bold")).pack(
+            anchor="w", padx=10, pady=(10, 5)
+        )
 
-    max_browsers_label = ttk.Label(info_frame, text=f"Max browsers that can be opened simultaneously: {results['max_browsers']}")
-    max_browsers_label.pack(anchor="w", pady=2)
+        entry_frame = ttk.Frame(self)
+        entry_frame.pack(fill="x", padx=10)
 
-    # Log the information
-    logger.info(f"System Info: {results['system_info']}")
-    logger.info(f"Estimated memory usage per Chrome browser/tab: {results['avg_memory_per_browser_mb']:.2f} MB")
-    logger.info(f"Max browsers by available RAM: {results['max_browsers_by_ram']}")
-    logger.info(f"Max browsers by CPU cores: {results['max_browsers_by_cpu']}")
-    logger.info(f"Max browsers that can be opened simultaneously: {results['max_browsers']}")
+        entry = ttk.Entry(entry_frame, textvariable=self.url_var)
+        entry.pack(side="left", fill="x", expand=True)
+        entry.focus()
 
-def create_chrome_test_button(tab1, client):
-    chrome_test_button = ttk.Button(tab1, text="Test Chrome", command=lambda: test_chrome(client))
-    chrome_test_button.pack(pady=10)
+        ttk.Button(entry_frame, text="Open in Browser", command=self._on_open).pack(
+            side="left", padx=(10, 0)
+        )
+        ttk.Button(entry_frame, text="Clear", command=self._clear_input).pack(side="left", padx=5)
 
-def test_chrome(client):
-    try:
-        client.visit('https://www.example.com')
-        WebDriverWait(client.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        page_title = client.driver.title
-        messagebox.showinfo("Chrome Test Result", f"Successfully loaded: {page_title}")
-    except Exception as e:
-        messagebox.showerror("Chrome Test Error", f"An error occurred: {str(e)}")
+        ttk.Label(self, textvariable=self.status_var, wraplength=800).pack(
+            anchor="w", padx=10, pady=(10, 0)
+        )
 
-def create_time_display(tab2):
-    time_label = ttk.Label(tab2, font=('calibri', 40, 'bold'))
-    time_label.pack(pady=20)
-    update_time(time_label)  # Start updating the time
+        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=10, pady=15)
 
-def update_time(time_label):
-    current_time = time.strftime('%H:%M:%S')
-    time_label.config(text=current_time)
-    time_label.after(1000, update_time, time_label)  # Update every 1 second
+        ttk.Label(self, text="Recent activity", font=("TkDefaultFont", 11, "bold")).pack(
+            anchor="w", padx=10
+        )
 
-def create_form(tab3):
-    ttk.Label(tab3, text="Name:").pack(pady=5)
-    name_entry = ttk.Entry(tab3)
-    name_entry.pack(pady=5)
+        self.history_list = tk.Listbox(self, height=8)
+        self.history_list.pack(fill="x", padx=10, pady=(5, 10))
+        self.history_list.bind("<Double-1>", lambda _: self._on_history_select())
 
-    ttk.Label(tab3, text="Email:").pack(pady=5)
-    email_entry = ttk.Entry(tab3)
-    email_entry.pack(pady=5)
+    def _clear_input(self) -> None:
+        self.url_var.set("")
 
-    submit_button = ttk.Button(tab3, text="Submit", command=lambda: submit_form(name_entry, email_entry))
-    submit_button.pack(pady=10)
+    def _on_history_select(self) -> None:
+        selection = self.history_list.curselection()
+        if not selection:
+            return
+        url = self.history_list.get(selection[0])
+        self.url_var.set(url)
+        self._open_url(url)
 
-def submit_form(name_entry, email_entry):
-    name = name_entry.get()
-    email = email_entry.get()
-    messagebox.showinfo("Form Submission", f"Name: {name}\nEmail: {email}")
+    def _on_open(self) -> None:
+        url = self.url_var.get().strip()
+        if not url:
+            messagebox.showwarning("Missing URL", "Please provide a URL to open.")
+            return
+
+        try:
+            normalised_url = self._normalise_url(url)
+        except ValueError as error:
+            messagebox.showerror("Invalid URL", str(error))
+            return
+
+        self._open_url(normalised_url)
+
+    def _open_url(self, url: str) -> None:
+        try:
+            self.browser_client.open_url(url)
+        except Exception as error:  # pylint: disable=broad-except
+            self.logger.error(f"Failed to open {url}: {error}")
+            messagebox.showerror(
+                "Browser error",
+                f"The application could not open {url}. Please check the logs.",
+            )
+            self.status_var.set(f"Failed to open {url}")
+            return
+
+        self.history.add(url)
+        self._refresh_history()
+        self.status_var.set(f"Opened {url}")
+        self.logger.info(f"Opened URL: {url}")
+
+    def _refresh_history(self) -> None:
+        self.history_list.delete(0, tk.END)
+        for item in self.history.items:
+            self.history_list.insert(tk.END, item)
+
+    @staticmethod
+    def _normalise_url(url: str) -> str:
+        parsed = urlparse(url if "://" in url else f"https://{url}")
+        if not parsed.netloc:
+            raise ValueError("The provided text is not a valid URL.")
+        return urlunparse(parsed)
+
+
+class SettingsScreen(ttk.Frame):
+    """Settings screen displaying diagnostics and environment information."""
+
+    def __init__(self, master, diagnostics_service: DiagnosticsService, logger: Logger):
+        super().__init__(master)
+        self._diagnostics_service = diagnostics_service
+        self.logger = logger
+
+        self.system_tree = ttk.Treeview(self, columns=("Property", "Value"), show="headings", height=6)
+        self.system_tree.heading("Property", text="Property")
+        self.system_tree.heading("Value", text="Value")
+        self.system_tree.column("Property", width=240, anchor="w")
+        self.system_tree.column("Value", width=460, anchor="w")
+
+        self.capacity_tree = ttk.Treeview(self, columns=("Metric", "Value"), show="headings", height=5)
+        self.capacity_tree.heading("Metric", text="Metric")
+        self.capacity_tree.heading("Value", text="Value")
+        self.capacity_tree.column("Metric", width=240, anchor="w")
+        self.capacity_tree.column("Value", width=460, anchor="w")
+
+        self._build_ui()
+
+    def _build_ui(self) -> None:
+        ttk.Label(self, text="Diagnostics", font=("TkDefaultFont", 12, "bold")).pack(
+            anchor="w", padx=10, pady=(10, 5)
+        )
+        self.system_tree.pack(fill="x", padx=10)
+
+        ttk.Label(self, text="Capacity Estimates", font=("TkDefaultFont", 11, "bold")).pack(
+            anchor="w", padx=10, pady=(15, 5)
+        )
+        self.capacity_tree.pack(fill="x", padx=10)
+
+        ttk.Button(self, text="Refresh diagnostics", command=self.refresh).pack(
+            anchor="e", padx=10, pady=15
+        )
+
+        self.binary_info = tk.Text(self, height=6, state="disabled", wrap="word")
+        self.binary_info.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+
+    def refresh(self) -> None:
+        try:
+            report = self._diagnostics_service.collect()
+        except Exception as error:  # pylint: disable=broad-except
+            self.logger.error(f"Failed to collect diagnostics: {error}")
+            messagebox.showerror("Diagnostics error", "Unable to collect diagnostics.")
+            return
+
+        self._populate_tree(self.system_tree, report.system_info_rows())
+        self._populate_tree(self.capacity_tree, report.capacity_rows())
+        self._populate_binary_info(report)
+
+    def _populate_tree(self, tree: ttk.Treeview, rows: List[tuple[str, str]]) -> None:
+        for item in tree.get_children():
+            tree.delete(item)
+        for key, value in rows:
+            tree.insert("", "end", values=(key, value))
+
+    def _populate_binary_info(self, report) -> None:
+        self.binary_info.configure(state="normal")
+        self.binary_info.delete("1.0", tk.END)
+        for key, value in report.binary_rows():
+            self.binary_info.insert(tk.END, f"{key}: {value}\n")
+        self.binary_info.configure(state="disabled")
+
+
+def main() -> None:
+    app = ScrapeGoatApp()
+    app.run()
+
 
 if __name__ == "__main__":
     main()
