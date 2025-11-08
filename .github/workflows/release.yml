@@ -16,7 +16,7 @@ jobs:
     uses: ./.github/workflows/build-linux.yml
     with:
       python_version: '3.10'
-      chromium_version: '142.0.7444.134-1'
+      chromium_version: '142.0.7444.134-1-x86_64'
 
   # build-macos:
   #   name: macOS x64
