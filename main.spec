@@ -14,6 +14,8 @@ current_platform = platform.system().lower()
 machine = platform.machine().lower()
 architecture = 'arm64' if machine in ('arm64', 'aarch64') else ('x64' if sys.maxsize > 2**32 else 'x86')
 
+BASE_DIR = Path(__file__).resolve().parent
+
 
 def _find_first_match(patterns: list[str], *, require_dir: bool) -> str:
     """Return the first existing path that matches any of the provided glob patterns."""
@@ -28,7 +30,7 @@ def _find_first_match(patterns: list[str], *, require_dir: bool) -> str:
     raise FileNotFoundError(f"Unable to locate resource using patterns: {patterns}")
 
 
-base_path = Path('ungoogled_chromium')
+base_path = (BASE_DIR / 'ungoogled_chromium').resolve()
 
 if current_platform.startswith('win'):
     exe_name = f'copliot_enigma_windows_{architecture}.exe'
