@@ -43,7 +43,7 @@ class BrowserClient:
         self.is_experimental = is_experimental
         self.request_interceptor = None
         self.last_request = None
-        self.wait: Optional[WebDriverWait] = None
+        self.wait = WebDriverWait(self.driver, 10)
 
     def initialize_driver(self):
         options = self._configure_chrome_options()
@@ -51,18 +51,13 @@ class BrowserClient:
         
         try:
             self.driver = webdriver.Chrome(service=service, options=options)
-            self.wait = WebDriverWait(self.driver, self.timeout_after)
             self.driver.request_interceptor = self._intercept_request
             self.request_interceptor = self._intercept_request
             self.initial_window_handle = self.driver.current_window_handle
-            logger.debug(f"Successfully initialized Chromium with window handle: {self.initial_window_handle}")
-        except FileNotFoundError as error:
-            logger.error(f"Required browser binary not found: {error}")
-            raise
+            logger.debug(f"Successfully Initialized Chrome Browser with Initial Window Handle: {self.initial_window_handle}")
         except WebDriverException as error:
             logger.error(f"Failed to initialize Chrome browser: {error}")
-            logger.error("Ensure that the Chromium and ChromeDriver binaries are correctly bundled.")
-            raise
+            logger.error("Ensure that the Chrome Portable and ChromeDriver binaries are correctly bundled.")
 
     def _configure_chrome_options(self) -> Options:
         options = Options()
@@ -125,11 +120,6 @@ class BrowserClient:
         chrome_binary_path = get_resource_path(os.path.join(chrome_path, chrome_binary))
         chromedriver_binary_path = get_resource_path(os.path.join(chromedriver_path, chromedriver_binary))
 
-        if not os.path.exists(chrome_binary_path):
-            raise FileNotFoundError(f"Chromium binary not found at {chrome_binary_path}")
-        if not os.path.exists(chromedriver_binary_path):
-            raise FileNotFoundError(f"ChromeDriver binary not found at {chromedriver_binary_path}")
-
         service = Service(executable_path=chromedriver_binary_path)
         options.binary_location = chrome_binary_path
 
@@ -137,8 +127,6 @@ class BrowserClient:
 
     def visit(self, url):
         """Visit the target URL."""
-        if self.driver is None:
-            raise RuntimeError('Browser driver is not initialised')
         self.driver.get(url)
         
     @staticmethod
@@ -337,7 +325,6 @@ class BrowserClient:
             self.driver.quit()
             self.driver = None
             self.initial_window_handle = None
-            self.wait = None
             logger.info("Chrome Browser closed successfully!")
         else:
             logger.warning("Driver is not initialized!")
