@@ -2,6 +2,27 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      build_linux:
+        description: 'Build and release the Linux artifact'
+        default: true
+        type: boolean
+      build_macos:
+        description: 'Build and release the macOS x64 artifact'
+        default: true
+        type: boolean
+      build_macos_arm:
+        description: 'Build and release the macOS ARM artifact'
+        default: true
+        type: boolean
+      build_windows:
+        description: 'Build and release the Windows artifact'
+        default: true
+        type: boolean
+      build_docker:
+        description: 'Build and publish the Docker image'
+        default: true
+        type: boolean
   push:
     tags:
       - 'v*'
@@ -13,37 +34,43 @@ on:
 jobs:
   build-linux:
     name: Linux x64
+    if: github.event_name != 'workflow_dispatch' || inputs.build_linux
     uses: ./.github/workflows/build-linux.yml
     with:
       python_version: '3.10'
-      chromium_version: '142.0.7444.134-1-x86_64'
+      chromium_version: '142.0.7444.134-1'
+      chromedriver_version: '142.0.7444.61'
 
-  # build-macos:
-  #   name: macOS x64
-  #   uses: ./.github/workflows/build-macos.yml
-  #   with:
-  #     python_version: '3.10'
-  #     chromium_version: '129.0.6668.58-1.1'
-  #     chromedriver_version: '131.0.6724.0'
+  build-macos:
+    name: macOS x64
+    if: github.event_name != 'workflow_dispatch' || inputs.build_macos
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      python_version: '3.10'
+      chromium_version: '142.0.7444.59-1.1'
+      chromedriver_version: '142.0.7444.61'
 
   build-macos-arm:
     name: macOS ARM
+    if: github.event_name != 'workflow_dispatch' || inputs.build_macos_arm
     uses: ./.github/workflows/build-mac-arm.yml
     with:
       python_version: '3.10'
       chromium_version: '142.0.7444.59-1.1'
       chromedriver_version: '142.0.7444.61'
-      
+
   build-windows:
     name: Windows x64
+    if: github.event_name != 'workflow_dispatch' || inputs.build_windows
     uses: ./.github/workflows/build-windows.yml
     with:
       python_version: '3.10'
       chromium_version: '142.0.7444.59-1.1'
       chromedriver_version: '142.0.7444.61'
-      
+
   build-docker:
     name: Docker
+    if: github.event_name != 'workflow_dispatch' || inputs.build_docker
     uses: ./.github/workflows/build-docker.yml
     with:
       repo: 'ghcr.io/${{ github.repository }}'
@@ -55,48 +82,75 @@ jobs:
       PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
   create-release:
-    needs: [build-linux, build-macos-arm, build-windows, build-docker]
+    needs:
+      - build-linux
+      - build-macos
+      - build-macos-arm
+      - build-windows
+      - build-docker
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Download Linux artifact
+        if: needs.build-linux.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: Linux Executable
           path: artifacts
 
       - name: Download macOS artifact
+        if: needs.build-macos.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: macOS Executable
           path: artifacts
 
       - name: Download Windows artifact
+        if: needs.build-windows.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: Windows Executable
           path: artifacts
 
       - name: Download macOS ARM artifact
+        if: needs.build-macos-arm.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: macOS ARM Executable
           path: artifacts
+
+      - name: Collect release files
+        id: release_files
+        run: |
+          files=""
+          if [ -f "artifacts/copliot_enigma_linux.zip" ]; then
+            files+="artifacts/copliot_enigma_linux.zip\n"
+          fi
+          if [ -f "artifacts/copliot_enigma_macos_x64.zip" ]; then
+            files+="artifacts/copliot_enigma_macos_x64.zip\n"
+          fi
+          if [ -f "artifacts/copliot_enigma_macos_arm64.zip" ]; then
+            files+="artifacts/copliot_enigma_macos_arm64.zip\n"
+          fi
+          if [ -f "artifacts/copliot_enigma_windows_x64.zip" ]; then
+            files+="artifacts/copliot_enigma_windows_x64.zip\n"
+          fi
+
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          printf "%s" "$files" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Read release message
         id: release_message
         run: echo "message=$(cat RELEASENOTES.md)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
+        if: steps.release_files.outputs.files != ''
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/scrapegoat_linux
-            artifacts/scrapegoat_macos_x64
-            artifacts/scrapegoat_macos_arm
-            artifacts/scrapegoat_windows_x64.exe
+          files: ${{ steps.release_files.outputs.files }}
           body: ${{ steps.release_message.outputs.message }}
           tag_name: ${{ github.ref_name }}
         env:
