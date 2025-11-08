@@ -110,14 +110,14 @@ jobs:
         id: artifact-meta
         run: |
           APP_SUFFIX=$(python - <<'PY'
-import platform
-machine = platform.machine().lower()
-if machine in ("arm64", "aarch64"):
-    print("arm64")
-else:
-    print("x64")
-PY
-)
+          import platform
+          machine = platform.machine().lower()
+          if machine in ("arm64", "aarch64"):
+              print("arm64")
+          else:
+              print("x64")
+          PY
+          )
           echo "app_name=copliot_enigma_macos_${APP_SUFFIX}" >> "$GITHUB_OUTPUT"
 
       - name: Archive build output
