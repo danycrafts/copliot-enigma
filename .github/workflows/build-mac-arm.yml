@@ -1,5 +1,4 @@
 name: 'Build macOS ARM'
-
 on:
   workflow_call:
     inputs:
@@ -63,8 +62,14 @@ jobs:
           # Dynamically get the volume name
           VOLUME_NAME=$(ls /Volumes | grep -i "Chromium")
           cp -R /Volumes/"$VOLUME_NAME"/Chromium.app ${{ env.OUTPUT_DIR }}/
-
+          
           hdiutil detach /Volumes/"$VOLUME_NAME"
+          
+          # Remove code signatures from Chromium.app to avoid PyInstaller codesign issues
+          echo "Removing code signatures from Chromium.app..."
+          codesign --remove-signature ${{ env.OUTPUT_DIR }}/Chromium.app/Contents/Frameworks/*.framework 2>/dev/null || true
+          codesign --remove-signature ${{ env.OUTPUT_DIR }}/Chromium.app 2>/dev/null || true
+          
           ls -la ${{ env.OUTPUT_DIR }}
 
       - name: Cache ChromeDriver 
@@ -91,7 +96,7 @@ jobs:
           else
             echo "Chromium.app not found"
           fi
-
+          
           echo "Checking ChromeDriver executable:"
           if [ -f "${{ env.OUTPUT_DIR }}/chromedriver" ]; then
             CHROMEDRIVER_VERSION=$(${{ env.OUTPUT_DIR }}/chromedriver --version)
@@ -101,7 +106,10 @@ jobs:
           fi
 
       - name: Package the app using PyInstaller
-        run: PYINSTALLER_OSX_CODESIGN=0 PYINSTALLER_OSX_SPLIT=0 pipenv run pyinstaller main.spec
+        run: |
+          export PYINSTALLER_OSX_CODESIGN=0
+          export PYINSTALLER_OSX_SPLIT=0
+          pipenv run pyinstaller main.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
