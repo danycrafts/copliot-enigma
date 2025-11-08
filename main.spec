@@ -19,7 +19,7 @@ def _find_first_match(patterns: list[str], *, require_dir: bool) -> str:
     """Return the first existing path that matches any of the provided glob patterns."""
 
     for pattern in patterns:
-        matches = sorted(glob.glob(pattern))
+        matches = sorted(glob.glob(pattern, recursive=True))
         for match in matches:
             if require_dir and os.path.isdir(match):
                 return match
@@ -52,6 +52,7 @@ elif current_platform == 'darwin':
     chrome_portable_path = _find_first_match(
         [
             str(base_path / 'Chromium.app'),
+            str(base_path / '**' / 'Chromium.app'),
         ],
         require_dir=True,
     )
@@ -68,6 +69,8 @@ else:  # Linux
         [
             str(base_path / 'ungoogled-chromium_*_linux*'),
             str(base_path / 'ungoogled-chromium_*_linux'),
+            str(base_path / '**' / 'ungoogled-chromium_*_linux*'),
+            str(base_path / '**' / 'ungoogled-chromium_*_linux'),
         ],
         require_dir=True,
     )
@@ -76,6 +79,7 @@ else:  # Linux
             str(base_path / 'chromedriver'),
             str(base_path / 'chromedriver' / 'chromedriver'),
             str(base_path / 'ungoogled-chromium_*_linux*' / 'chromedriver'),
+            str(base_path / '**' / 'ungoogled-chromium_*_linux*' / 'chromedriver'),
         ],
         require_dir=False,
     )

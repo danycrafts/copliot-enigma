@@ -62,14 +62,12 @@ jobs:
 
           # Dynamically get the volume name
           VOLUME_NAME=$(ls /Volumes | grep -i "Chromium")
-          cp -R /Volumes/"$VOLUME_NAME"/Chromium.app ${{ env.OUTPUT_DIR }}/
+          ditto /Volumes/"$VOLUME_NAME"/Chromium.app ${{ env.OUTPUT_DIR }}/Chromium.app
 
           hdiutil detach /Volumes/"$VOLUME_NAME"
 
-          # Remove code signatures from Chromium.app to avoid PyInstaller codesign issues
-          echo "Removing code signatures from Chromium.app..."
-          codesign --remove-signature ${{ env.OUTPUT_DIR }}/Chromium.app/Contents/Frameworks/*.framework 2>/dev/null || true
-          codesign --remove-signature ${{ env.OUTPUT_DIR }}/Chromium.app 2>/dev/null || true
+          # Clear the quarantine attribute that can interfere with execution
+          xattr -dr com.apple.quarantine ${{ env.OUTPUT_DIR }}/Chromium.app || true
 
           ls -la ${{ env.OUTPUT_DIR }}
           rm -f ungoogled-chromium.dmg
