@@ -5,6 +5,10 @@ on:
   push:
     tags:
       - 'v*'
+# https://github.com/ungoogled-software/ungoogled-chromium-portablelinux/releases
+# https://github.com/ungoogled-software/ungoogled-chromium-macos/releases
+# https://github.com/ungoogled-software/ungoogled-chromium-windows/releases
+# https://googlechromelabs.github.io/chrome-for-testing/#stable
 
 jobs:
   build-linux:
@@ -12,7 +16,7 @@ jobs:
     uses: ./.github/workflows/build-linux.yml
     with:
       python_version: '3.10'
-      chromium_version: '129.0.6668.58-1'
+      chromium_version: '142.0.7444.134-1'
 
   # build-macos:
   #   name: macOS x64
