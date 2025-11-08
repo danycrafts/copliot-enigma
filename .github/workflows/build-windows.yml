@@ -38,7 +38,16 @@ jobs:
           python-version: ${{ inputs.python_version }}
 
       - name: Install Pipenv
-        run: pip install --user pipenv
+        run: |
+          pip install --user pipenv
+          $pyVersion = '${{ inputs.python_version }}'
+          $pipenvPath = Join-Path $env:USERPROFILE "AppData/Local/Programs/Python/Python$($pyVersion.Replace('.', ''))/Scripts"
+          $altPath = Join-Path $env:USERPROFILE "AppData/Roaming/Python/Python$pyVersion/Scripts"
+          if (Test-Path $pipenvPath) {
+            $pipenvPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          } elseif (Test-Path $altPath) {
+            $altPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
 
       - name: Install Python Dependencies
         run: |
@@ -54,10 +63,12 @@ jobs:
       - name: Download Ungoogled Chromium
         if: steps.cache-chromium.outputs.cache-hit != 'true'
         run: |
-          $CHROMIUM_FOLDER_NAME = "ungoogled-chromium_${{ inputs.chromium_version }}_windows"
-          Invoke-WebRequest -Uri "${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/${CHROMIUM_FOLDER_NAME}.zip" -OutFile ${CHROMIUM_FOLDER_NAME}.zip
-          New-Item -Path ${{ env.OUTPUT_DIR }} -ItemType Directory -Force
-          Expand-Archive -Path ${CHROMIUM_FOLDER_NAME}.zip -DestinationPath ${{ env.OUTPUT_DIR }}
+          $chromiumFolder = "ungoogled-chromium_${{ inputs.chromium_version }}_windows"
+          $archivePath = "$chromiumFolder.zip"
+          Invoke-WebRequest -Uri "${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/$chromiumFolder.zip" -OutFile $archivePath
+          New-Item -Path ${{ env.OUTPUT_DIR }} -ItemType Directory -Force | Out-Null
+          Expand-Archive -Path $archivePath -DestinationPath ${{ env.OUTPUT_DIR }} -Force
+          Remove-Item $archivePath
 
       - name: Cache ChromeDriver
         id: cache-chromedriver
@@ -69,30 +80,34 @@ jobs:
       - name: Download ChromeDriver
         if: steps.cache-chromedriver.outputs.cache-hit != 'true'
         run: |
-          Invoke-WebRequest -Uri "${{ env.CHROMEDRIVER_BASE_URL }}/${{ inputs.chromedriver_version }}/win64/chromedriver-win64.zip" -OutFile ${{ env.CHROMEDRIVER_ARCHIVE_NAME }}
-          New-Item -Path ${{ env.OUTPUT_DIR }}\chromedriver -ItemType Directory -Force
-          Expand-Archive -Path ${{ env.CHROMEDRIVER_ARCHIVE_NAME }} -DestinationPath ${{ env.OUTPUT_DIR }}\chromedriver
-      
+          $chromedriverArchive = 'chromedriver-win64.zip'
+          Invoke-WebRequest -Uri "${{ env.CHROMEDRIVER_BASE_URL }}/${{ inputs.chromedriver_version }}/win64/chromedriver-win64.zip" -OutFile $chromedriverArchive
+          New-Item -Path ${{ env.OUTPUT_DIR }}\chromedriver -ItemType Directory -Force | Out-Null
+          Expand-Archive -Path $chromedriverArchive -DestinationPath ${{ env.OUTPUT_DIR }}\chromedriver -Force
+          Remove-Item $chromedriverArchive
+
       - name: Debug - Check Chromium and ChromeDriver
         run: |
           Write-Host "Checking Chromium executable:"
-          if (Test-Path "D:\a\scrapegoat\scrapegoat\ungoogled_chromium\ungoogled-chromium_${{ inputs.chromium_version }}_windows\chrome.exe") {
-            $chromeVersion = (Get-Item "D:\a\scrapegoat\scrapegoat\ungoogled_chromium\ungoogled-chromium_${{ inputs.chromium_version }}_windows\chrome.exe").VersionInfo.FileVersion
+          $chromePath = Join-Path $env:GITHUB_WORKSPACE "${{ env.OUTPUT_DIR }}/ungoogled-chromium_${{ inputs.chromium_version }}_windows/chrome.exe"
+          if (Test-Path $chromePath) {
+            $chromeVersion = (Get-Item $chromePath).VersionInfo.FileVersion
             Write-Host "Chromium version: $chromeVersion"
           } else {
             Write-Host "Chromium executable not found"
           }
 
           Write-Host "Checking ChromeDriver executable:"
-          if (Test-Path "D:\a\scrapegoat\scrapegoat\ungoogled_chromium\chromedriver\chromedriver-win64\chromedriver.exe") {
-            $chromeDriverVersion = & "D:\a\scrapegoat\scrapegoat\ungoogled_chromium\chromedriver\chromedriver-win64\chromedriver.exe" --version
+          $chromedriverPath = Join-Path $env:GITHUB_WORKSPACE "${{ env.OUTPUT_DIR }}/chromedriver/chromedriver-win64/chromedriver.exe"
+          if (Test-Path $chromedriverPath) {
+            $chromeDriverVersion = & $chromedriverPath --version
             Write-Host "ChromeDriver version: $chromeDriverVersion"
           } else {
             Write-Host "ChromeDriver executable not found"
           }
 
           Write-Host "Listing contents of Chromium directory:"
-          Get-ChildItem -Path "D:\a\scrapegoat\scrapegoat\ungoogled_chromium" -Recurse | Select-Object FullName, Length
+          Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE ${{ env.OUTPUT_DIR }}) -Recurse | Select-Object FullName, Length
 
       - name: Package the app using PyInstaller
         run: pipenv run pyinstaller main.spec
@@ -101,4 +116,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Windows Executable
-          path: "D:\\a\\scrapegoat\\scrapegoat\\dist\\scrapegoat_windows_x64.exe"
+          path: "${{ github.workspace }}\dist\copliot_enigma_windows_x64.exe"

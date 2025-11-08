@@ -1,73 +1,63 @@
-# ScrapeGoat
+# Copliot Enigma
 
-ScrapeGoat is an advanced web scraping tool that leverages artificial intelligence and browser automation to meet diverse scraping needs. Whether you're comparing prices across shopping websites, tracking Instagram user posts, or automating social media uploads, ScrapeGoat provides a powerful and flexible solution.
+Copliot Enigma observes the rhythm of your desktop and turns those signals into actionable intelligence with a configurable OpenAI-compatible bridge. The project pairs a Wails-powered Go backend with a Material-inspired Tkinter workspace that delivers three cohesive screens: an operational dashboard, an activity explorer, and a settings surface that can connect to any OpenAI-compatible `/models` endpoint.
 
-## Introduction
+## Highlights
 
-Scrape the web like a GOAT! ScrapeGoat is the ultimate web scraping tool, powered by AI steroids. This beast of a scraper empowers users to efficiently collect and analyze web data, transforming raw information into actionable insights faster than you can say "baa". By combining AI-driven decision-making with robust browser automation, ScrapeGoat offers a cutting-edge approach to web scraping that's not just powerful and user-friendly, it's downright revolutionary. Get ready to become the GOAT of web scraping!
+- **Material-first desktop workspace** – Responsive navigation, card-based metrics, and dark-mode aware theming powered by `ttkbootstrap` for a modern Material UI feel in native Tkinter.
+- **Configurable LLM bridge** – Persist encrypted credentials locally, validate OpenAI-compatible endpoints, and surface latency + availability telemetry for the selected model.
+- **Activity intelligence prototypes** – Deterministic sample data feeds inform dashboard charts and the explorer table to accelerate UX iteration.
+- **Cross-platform packaging** – PyInstaller specifications plus GitHub Actions workflows bundle macOS, Windows, and Linux artifacts while pulling the exact Chromium + ChromeDriver pair required by Selenium.
 
-## Features
-
-- **AI-Powered Scraping**: Utilizes machine learning algorithms to adapt to website changes and optimize scraping strategies.
-- **Browser Automation**: Mimics human-like browsing behavior to navigate websites and extract data seamlessly.
-- **Multi-Purpose Functionality**: Suitable for a wide range of applications, including e-commerce price comparison, social media monitoring, and content aggregation.
-- **Customizable Scraping Workflows**: Create and save custom scraping recipes for repeated tasks.
-- **Data Export**: Export scraped data in various formats (CSV, JSON, XML) for easy integration with other tools and platforms.
-- **Scheduling**: Set up automated scraping tasks to run at specified intervals.
-- **Proxy Support**: Rotate through proxy servers to avoid IP blocks and maintain anonymity.
-- **CAPTCHA Handling**: Advanced CAPTCHA solving capabilities to bypass common anti-bot measures.
-
-## Dependencies
-
-ScrapeGoat relies on the following key dependencies:
+## Prerequisites
 
 - Python 3.10+
-- Selenium
-- Requests
-- portable google chrome browser 131.0.6724.0+
-- chromedriver 131.0.6724.0+ 
+- Google Chromium 129.0.6668.58-1.1 portable bundle
+- ChromeDriver 131.0.6724.0
+- `pipenv` for environment management
 
-A complete list of dependencies can be found in the `requirements.txt` file.
+All Python dependencies are captured in the `Pipfile`/`Pipfile.lock` pair and resolved automatically by Pipenv.
 
-## Usage
+## Quick start
 
-For a comprehensive guide on how to use ScrapeGoat, please refer to our [User Manual](./docs/user_manual.md).
+```bash
+pipenv install --dev
+pipenv run python src/main.py
+```
 
+The application launches into a three-tab Material-style interface:
 
+1. **Dashboard** – Displays hardware telemetry, browser concurrency estimates, and live Chrome validation controls.
+2. **Activity Explorer** – Filters deterministic telemetry events and renders them in a sortable tree view.
+3. **Settings** – Stores LLM endpoints + credentials locally and validates connectivity on demand.
+
+## Containerised development
+
+Build the desktop-ready development container with Docker:
+
+```bash
+# grant X11 access on Linux hosts when forwarding GUI windows
+xhost +
+
+# build and run the container defined in `Containerfile`
+docker build -t copliot-enigma . -f Containerfile
+docker run --rm -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  copliot-enigma:latest
+```
 
 ## Contributing
 
-We welcome contributions from the community! If you'd like to contribute to ScrapeGoat, please follow these steps:
+We welcome issues, feature ideas, and pull requests. Review our [Contributing Guide](./CONTRIBUTING.md) and [Code of Conduct](./CODE_OF_CONDUCT.md) before submitting changes. For strategic planning, see the [Roadmap](./ROADMAP.md) and [Governance](./GOVERNANCE.md) documents.
 
-1. Fork the repository
-2. Create a new branch for your feature or bug fix
-3. Make your changes and commit them with clear, descriptive messages
-4. Push your changes to your fork
-5. Submit a pull request to the main repository
+## Security
 
-Please ensure that your code adheres to our coding standards and includes appropriate tests. For more information, see our [Contribution Guidelines](./CONTRIBUTING.md).
-
-```bash
-    # dependencies, install if needed!
-    sudo apt install x11-xserver-utils xorg
-    xhost + # allow from anywhere to connect (used for opening gui from within Container)
-    # run your development container
-    docker build -t scrapegoat . -f GoatFile
-    docker run --rm -it scrapegoat:latest /bin/sh
-    docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix scrapegoat:latest
-```
-
-## License
-
-ScrapeGoat is released under the MIT License. See the [LICENSE](./LICENSE) file for details.
+Coordinated disclosure details live in [SECURITY.md](./SECURITY.md). Please report vulnerabilities privately to `security@copliot-enigma.dev`.
 
 ## Support
 
-If you encounter any issues or have questions, please file an issue on our [GitHub Issues page](https://github.com/scrapegoat/scrapegoat/issues).
-
-For additional support and community discussions, join our [Discord server](https://discord.gg/scrapegoat).
+Need help? Consult the [Support guide](./SUPPORT.md) for triage expectations, response times, and escalation paths. Public questions belong on [GitHub Issues](https://github.com/danycrafts/copliot-enigma/issues).
 
 ---
 
-**Disclaimer**: Please use ScrapeGoat responsibly and in accordance with the terms of service of the websites you are scraping. The developers of ScrapeGoat are not responsible for any misuse of the tool or violations of website policies.
-
+Copliot Enigma is released under the [MIT License](./LICENSE).

@@ -28,7 +28,7 @@ class Logger:
     _instance: Optional['Logger'] = None
     _lock = threading.Lock()
 
-    def __new__(cls, log_level: int = logging.INFO, log_file: str = 'scrapegoat.log') -> 'Logger':
+    def __new__(cls, log_level: int = logging.INFO, log_file: str = 'copliot-enigma.log') -> 'Logger':
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:

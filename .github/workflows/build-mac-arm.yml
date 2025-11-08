@@ -101,10 +101,10 @@ jobs:
           fi
 
       - name: Package the app using PyInstaller
-        run: pipenv run pyinstaller main.spec
+        run: PYINSTALLER_OSX_CODESIGN=0 PYINSTALLER_OSX_SPLIT=0 pipenv run pyinstaller main.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macOS ARM Executable
-          path: dist/scrapegoat_macos_arm64
+          path: dist/copliot_enigma_macos_arm64
