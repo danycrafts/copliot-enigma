@@ -81,22 +81,8 @@ jobs:
           mv chromedriver-linux64/chromedriver ${{ env.OUTPUT_DIR }}/chromedriver/
           rm -rf chromedriver-linux64 ${{ env.CHROMEDRIVER_ARCHIVE_NAME }}
 
-      - name: Check Chromium and ChromeDriver Version
-        run: |
-          CHROMIUM_DIR=$(find "${{ env.OUTPUT_DIR }}" -maxdepth 1 -type d -name "ungoogled-chromium*linux*" | head -n 1)
-          if [ -n "$CHROMIUM_DIR" ] && [ -f "$CHROMIUM_DIR/chrome" ]; then
-            echo "Chromium version:"
-            "$CHROMIUM_DIR/chrome" --product-version
-          else
-            echo "Chromium executable not found"
-          fi
-
-          if [ -f "${{ env.OUTPUT_DIR }}/chromedriver/chromedriver" ]; then
-            echo "ChromeDriver version:"
-            ${{ env.OUTPUT_DIR }}/chromedriver/chromedriver --version
-          else
-            echo "ChromeDriver executable not found"
-          fi
+      - name: Debug browser bundle
+        run: python3 scripts/debug_browser_binaries.py --search-root "${{ env.OUTPUT_DIR }}"
 
       - name: Package the app using PyInstaller
         run: pipenv run pyinstaller main.spec
