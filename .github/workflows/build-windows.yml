@@ -54,11 +54,13 @@ jobs:
       - name: Download Ungoogled Chromium
         if: steps.cache-chromium.outputs.cache-hit != 'true'
         run: |
-          $CHROMIUM_FOLDER_NAME = "ungoogled-chromium_${{ inputs.chromium_version }}_windows"
-          Invoke-WebRequest -Uri "${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/${CHROMIUM_FOLDER_NAME}.zip" -OutFile ${CHROMIUM_FOLDER_NAME}.zip
-          New-Item -Path ${{ env.OUTPUT_DIR }} -ItemType Directory -Force
-          Expand-Archive -Path ${CHROMIUM_FOLDER_NAME}.zip -DestinationPath ${{ env.OUTPUT_DIR }}
-
+          $chromiumFolderName = "ungoogled-chromium_${{ inputs.chromium_version }}_windows"
+          $archivePath = "${chromiumFolderName}.zip"
+          Invoke-WebRequest -Uri "${{ env.CHROMIUM_BASE_URL }}/${{ inputs.chromium_version }}/${archivePath}" -OutFile $archivePath
+          New-Item -Path ${{ env.OUTPUT_DIR }} -ItemType Directory -Force | Out-Null
+          Expand-Archive -Path $archivePath -DestinationPath ${{ env.OUTPUT_DIR }} -Force
+          Remove-Item $archivePath
+          
       - name: Cache ChromeDriver
         id: cache-chromedriver
         uses: actions/cache@v4
