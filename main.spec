@@ -1,55 +1,42 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
-import sys
 import platform
+import sys
 from PyInstaller.utils.hooks import collect_submodules
 
 block_cipher = None
 
 current_platform = platform.system().lower()
-architecture = 'x64' if sys.maxsize > 2**32 else 'x86'
+machine = platform.machine().lower()
+architecture = 'arm64' if machine in ('arm64', 'aarch64') else ('x64' if sys.maxsize > 2**32 else 'x86')
 
-# Define executable name and paths based on the operating system
 if current_platform.startswith('win'):
-    exe_name = f'scrapegoat_windows_{architecture}.exe'
-    build_path = 'D:\\a\\scrapegoat\\scrapegoat\\dist\\'
-    chrome_portable_path = '.\\ungoogled_chromium\\ungoogled-chromium_129.0.6668.58-1.1_windows\\'
-    chromedriver_path = '.\\ungoogled_chromium\\chromedriver\\chromedriver-win64\\'
-    chromedriver_binary = 'chromedriver.exe'
-    chrome_binary = 'chrome.exe'
+    exe_name = f'copliot_enigma_windows_{architecture}.exe'
+    chrome_portable_path = os.path.join('ungoogled_chromium', 'ungoogled-chromium_129.0.6668.58-1.1_windows')
+    chromedriver_source = os.path.join('ungoogled_chromium', 'chromedriver', 'chromedriver-win64', 'chromedriver.exe')
 elif current_platform == 'darwin':
-    exe_name = f'scrapegoat_macos_{architecture}'
-    build_path = '/Users/runner/work/scrapegoat/scrapegoat/dist/'
-    chrome_portable_path = './ungoogled_chromium/Chromium.app/Contents/MacOS/'
-    chromedriver_path = './ungoogled_chromium/'
-    chromedriver_binary = 'chromedriver'
-    chrome_binary = 'Chromium'
+    exe_name = f'copliot_enigma_macos_{architecture}'
+    chrome_portable_path = os.path.join('ungoogled_chromium', 'Chromium.app')
+    chromedriver_source = os.path.join('ungoogled_chromium', 'chromedriver')
 else:  # Linux
-    exe_name = 'scrapegoat_linux'
-    build_path = '/home/runner/work/scrapegoat/scrapegoat/dist/'
-    chrome_portable_path = './ungoogled_chromium/ungoogled-chromium_129.0.6668.58-1_linux/'
-    chromedriver_path = './ungoogled_chromium/ungoogled-chromium_129.0.6668.58-1_linux/'
-    chromedriver_binary = 'chromedriver'
-    chrome_binary = 'chrome'
+    exe_name = 'copliot_enigma_linux'
+    chrome_portable_path = os.path.join('ungoogled_chromium', 'ungoogled-chromium_129.0.6668.58-1_linux')
+    chromedriver_source = os.path.join('ungoogled_chromium', 'ungoogled-chromium_129.0.6668.58-1_linux', 'chromedriver')
 
-# Adjust paths when running as a frozen executable
-if getattr(sys, 'frozen', False):
-    chrome_portable_path = os.path.join(sys._MEIPASS, 'chrome_portable')
-    chromedriver_path = os.path.join(sys._MEIPASS, 'chromedriver')
+binaries = [(chromedriver_source, 'chromedriver')]
 
-# Analysis step
+# Bundle Chromium as data to avoid macOS codesign issues.
+if current_platform == 'darwin':
+    datas = [(chrome_portable_path, os.path.join('chrome_portable', 'Chromium.app'))]
+else:
+    datas = [(chrome_portable_path, 'chrome_portable')]
+
 a = Analysis(
     ['src/main.py'],
     pathex=['src'],
-    binaries=[
-        (os.path.join(chromedriver_path, chromedriver_binary), 'chromedriver'),
-        (os.path.join(chrome_portable_path, chrome_binary), 'chrome')
-    ],
-    datas=[
-        (chrome_portable_path, 'chrome_portable'),
-        (chromedriver_path, 'chromedriver')
-    ],
+    binaries=binaries,
+    datas=datas,
     hiddenimports=collect_submodules('tkinter') + collect_submodules('ttkbootstrap') + ['win32ctypes.pywin32', 'pywintypes', 'win32api'],
     hookspath=[],
     hooksconfig={},
@@ -63,7 +50,6 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-# Create the executable
 exe = EXE(
     pyz,
     a.scripts,

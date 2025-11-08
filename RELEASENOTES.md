@@ -3,7 +3,7 @@
 ## Version 1.0.0 (2024-03-15)
 
 ### New Features
-- Initial release of ScrapeGoat
+- Initial release of Copliot Enigma
 - AI-powered scraping capabilities
 - Browser automation with Selenium
 - Custom scraping workflow creation

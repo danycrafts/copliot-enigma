@@ -2,6 +2,7 @@ import psutil
 import platform
 import os
 import subprocess
+import time
 import re
 
 def get_system_info():
@@ -74,26 +75,36 @@ def _get_firefox_memory_usage():
 def _estimate_memory_usage(browser):
     """Helper to estimate memory usage by launching a browser."""
     # Launch a browser instance in the background and measure its memory usage
-    if browser == "chrome":
-        process = subprocess.Popen(["google-chrome", "--headless", "--disable-gpu", "--remote-debugging-port=9222"])
-    elif browser == "firefox":
-        process = subprocess.Popen(["firefox", "--headless"])
+    process = None
+    try:
+        if browser == "chrome":
+            process = subprocess.Popen([
+                "google-chrome",
+                "--headless",
+                "--disable-gpu",
+                "--remote-debugging-port=9222"
+            ])
+        elif browser == "firefox":
+            process = subprocess.Popen(["firefox", "--headless"])
+        else:
+            raise ValueError(f"Unsupported browser: {browser}")
 
-    # Allow the browser to initialize
-    import time
-    time.sleep(5)
+        # Allow the browser to initialize
+        time.sleep(5)
 
-    # Check memory usage of the browser process
-    browser_memory = 0
-    for proc in psutil.process_iter(['pid', 'name']):
-        if browser in proc.info['name'].lower():
-            browser_memory += proc.memory_info().rss / (1024 ** 2)  # Convert bytes to MB
+        browser_memory = 0
+        for proc in psutil.process_iter(['pid', 'name']):
+            name = proc.info.get('name', '').lower()
+            if browser in name:
+                browser_memory += proc.memory_info().rss / (1024 ** 2)  # Convert bytes to MB
 
-    # Kill the browser instance
-    process.terminate()
-
-    return browser_memory
-
+        return browser_memory or 350.0
+    except FileNotFoundError:
+        # Fall back to a conservative default when the binary is not present
+        return 350.0
+    finally:
+        if process is not None:
+            process.terminate()
 def transform_url(url):
     """Transform the URL by replacing '.' with '_'."""
     # Use regex to extract the domain part from the URL
